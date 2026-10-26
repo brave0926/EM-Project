@@ -40,6 +40,7 @@ GET  /metrics       metrics_controller.py               metrics_service.py      
 ```
 
 - Services return domain data (models or plain values); controllers map it to schemas.
+- main.py is the composition root: it may import clients to own the shared MCP client (lazy, closed on shutdown) and map McpClientError to HTTP (UNAVAILABLE 503, TIMEOUT 504, TOOL_ERROR/BAD_RESPONSE 502). Controllers never touch the client; services get it via clients.get_mcp_client().
 - The backend reaches data only through the MCP client. Never import mcp_server or a provider from backend/.
 - Build order: B3 builds the MCP server and MCP client first; /facilities/er, /facilities/ph and /otc/{cat} come after, on top of the client.
 - /metrics returns a JSON summary (no Prometheus format).

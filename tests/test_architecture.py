@@ -7,7 +7,7 @@ APP = Path(__file__).resolve().parent.parent / "backend" / "app"
 
 # layer -> app layers it may import (its own layer is always allowed)
 ALLOWED = {
-    "main": {"controllers", "core"},
+    "main": {"controllers", "clients", "core"},  # composition root
     "controllers": {"schemas", "services", "graph", "core"},
     "graph": {"services", "models", "core"},
     "services": {"clients", "models", "core"},

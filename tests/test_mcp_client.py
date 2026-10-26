@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import pytest
@@ -68,3 +69,33 @@ async def test_unreachable_server_is_unavailable():
 
 def test_default_timeout_is_rt102():
     assert McpClient("http://unused/mcp").timeout_s == 2.0
+
+
+@pytest.mark.asyncio
+async def test_lazy_connect_and_close_from_another_task():
+    mcp = _client()
+    # first call opens the connection inside a separate task (like a request handler)
+    otc = await asyncio.create_task(mcp.get_otc(Category.BURN))
+    assert otc
+    await mcp.aclose()  # closed from this task: must not raise
+
+
+@pytest.mark.asyncio
+async def test_parallel_calls_share_one_connection():
+    async with _client(delay_ms_range=(200, 200)) as mcp:
+        t0 = time.perf_counter()
+        ers, pharmacies = await asyncio.gather(
+            mcp.get_er_beds("Chungju", near=CHUNGJU), mcp.get_pharmacies(CHUNGJU, at_time="12:00")
+        )
+        elapsed = time.perf_counter() - t0
+    assert ers and pharmacies
+    assert elapsed < 0.35  # parallel, not 0.4 s sequential
+
+
+@pytest.mark.asyncio
+async def test_reconnects_after_dropped_connection():
+    async with _client() as mcp:
+        await mcp.get_otc(Category.CUT)
+        mcp._stop.set()  # simulate the connection dropping
+        await asyncio.sleep(0)
+        assert await mcp.get_otc(Category.CUT)
