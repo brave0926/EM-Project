@@ -119,3 +119,25 @@ async def test_parallel_first_calls_share_one_lazy_handshake():
     ers, otc = await asyncio.gather(mcp.get_er_beds("Chungju"), mcp.get_otc(Category.CUT))
     await mcp.aclose()
     assert ers and otc
+
+
+@pytest.mark.asyncio
+async def test_stale_failure_does_not_close_newer_connection():
+    async with _client() as mcp:
+        old = mcp._owner
+        await mcp.aclose()  # the old connection dropped...
+        new = await mcp.connect()  # ...and a parallel request already reconnected
+        await mcp._close(old)  # a late failure on the old connection
+        assert mcp._owner is new and not new.done()
+        assert await mcp.get_otc(Category.CUT)
+
+
+@pytest.mark.asyncio
+async def test_parallel_calls_recover_after_drop():
+    async with _client(delay_ms_range=(50, 50)) as mcp:
+        await mcp.get_otc(Category.CUT)
+        mcp._stop.set()  # drop the shared connection
+        results = await asyncio.gather(
+            mcp.get_er_beds("Chungju"), mcp.get_pharmacies(CHUNGJU, at_time="12:00"), mcp.get_otc(Category.BURN)
+        )
+    assert all(results)

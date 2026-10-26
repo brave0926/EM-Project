@@ -99,7 +99,7 @@ async def pharmacy_worker(state: TriageState) -> TriageState:
         return_exceptions=True,
     )
     update: TriageState = {"pharmacies": [], "otc": [], "notices": []}
-    if isinstance(pharmacies, Exception):
+    if isinstance(pharmacies, BaseException):  # gather may also return CancelledError
         log.warning("pharmacy lookup failed", exc_info=pharmacies)
         update["notices"].append(Notice.PHARMACY_UNAVAILABLE)
     else:
@@ -107,7 +107,7 @@ async def pharmacy_worker(state: TriageState) -> TriageState:
         update["pharmacies"] = found[:TOP_N]
         if not found:
             update["notices"].append(Notice.NO_OPEN_PHARMACY)
-    if isinstance(otc, Exception):
+    if isinstance(otc, BaseException):
         log.warning("otc lookup failed", exc_info=otc)
         update["notices"].append(Notice.OTC_UNAVAILABLE)
     else:

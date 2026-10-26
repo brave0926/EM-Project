@@ -34,6 +34,13 @@ class McpClientError(Exception):
     def __init__(self, code: ErrorCode, message: str) -> None:
         super().__init__(f"{code}: {message}")
         self.code = code
+        self.connection: asyncio.Task[None] | None = None  # the connection that failed, if any
+
+
+def _tag(exc: BaseException, connection: asyncio.Task[None]) -> BaseException:
+    if isinstance(exc, McpClientError):
+        exc.connection = connection
+    return exc
 
 
 class McpClient:
@@ -54,8 +61,8 @@ class McpClient:
     async def __aexit__(self, *exc_info: object) -> None:
         await self.aclose()
 
-    async def connect(self, timeout_s: float | None = None) -> None:
-        """Open the connection if needed. Concurrent callers share one handshake."""
+    async def connect(self, timeout_s: float | None = None) -> asyncio.Task[None]:
+        """Open the connection if needed and return it. Concurrent callers share one handshake."""
         timeout_s = self.timeout_s if timeout_s is None else timeout_s
         async with self._lock:
             if self._owner is None or self._owner.done():
@@ -64,18 +71,24 @@ class McpClient:
                 # mark a failure as retrieved even if no caller is left waiting
                 self._ready.add_done_callback(lambda f: f.cancelled() or f.exception())
                 self._owner = asyncio.create_task(self._hold(self._ready))
-            ready = self._ready
+            owner, ready = self._owner, self._ready
         done, _ = await asyncio.wait({ready}, timeout=timeout_s)  # never cancels the shared handshake
         if not done:
-            await self.aclose()  # abandon a handshake that never finishes
+            await self._close(owner)  # abandon a handshake that never finishes
             raise McpClientError("TIMEOUT", f"no handshake from em-mcp-server within {timeout_s:.2f} s")
-        ready.result()  # re-raises UNAVAILABLE if the handshake failed
+        if (exc := ready.exception()) is not None:
+            raise _tag(exc, owner)
+        return owner
 
     async def aclose(self) -> None:
-        owner, self._owner = self._owner, None
-        self._stop.set()
-        if owner is None:
+        await self._close(self._owner)
+
+    async def _close(self, owner: asyncio.Task[None] | None) -> None:
+        """Close `owner` only if it is still the current connection, never a newer one."""
+        if owner is None or owner is not self._owner:
             return
+        self._owner = None
+        self._stop.set()
         handshake_done = self._ready is not None and self._ready.done()
         done, _ = await asyncio.wait({owner}, timeout=CLOSE_GRACE_S if handshake_done else 0)
         if not done:  # stuck in the handshake or in close: cancel it
@@ -125,7 +138,9 @@ class McpClient:
         except McpClientError as exc:
             if exc.code != "UNAVAILABLE":
                 raise
-        await self.aclose()  # connection dropped: reopen once, then give up
+            # Connection dropped: close the one this call used (a parallel call may already
+            # have opened a newer one), then try once more.
+            await self._close(exc.connection)
         return await self._call_once(tool, args, adapter, deadline)
 
     def _remaining(self, tool: str, deadline: float) -> float:
@@ -135,16 +150,17 @@ class McpClient:
         return left
 
     async def _call_once(self, tool: str, args: dict[str, Any], adapter: TypeAdapter[T], deadline: float) -> T:
-        await self.connect(self._remaining(tool, deadline))
-        if self._client is None:
-            raise McpClientError("UNAVAILABLE", f"{tool}: connection closed")
+        owner = await self.connect(self._remaining(tool, deadline))
+        client = self._client
+        if client is None:
+            raise _tag(McpClientError("UNAVAILABLE", f"{tool}: connection closed"), owner)
         try:
-            result = await self._client.call_tool(tool, args, read_timeout_seconds=self._remaining(tool, deadline))
+            result = await client.call_tool(tool, args, read_timeout_seconds=self._remaining(tool, deadline))
         except MCPError as exc:
             code: ErrorCode = "TIMEOUT" if "Timed out" in str(exc) else "UNAVAILABLE"
-            raise McpClientError(code, f"{tool}: {exc}") from exc
+            raise _tag(McpClientError(code, f"{tool}: {exc}"), owner) from exc
         except Exception as exc:
-            raise McpClientError("UNAVAILABLE", f"{tool}: {exc!r}") from exc
+            raise _tag(McpClientError("UNAVAILABLE", f"{tool}: {exc!r}"), owner) from exc
         if result.is_error:
             text = " ".join(getattr(c, "text", "") for c in result.content)
             raise McpClientError("TOOL_ERROR", f"{tool}: {text}")
