@@ -8,7 +8,7 @@ APP = Path(__file__).resolve().parent.parent / "backend" / "app"
 # layer -> app layers it may import (its own layer is always allowed)
 ALLOWED = {
     "main": {"controllers", "clients", "core"},  # composition root
-    "controllers": {"schemas", "services", "graph", "core"},
+    "controllers": {"schemas", "services", "graph", "models", "core"},  # models: enums as path params
     "graph": {"services", "models", "core"},
     "services": {"clients", "models", "core"},
     "clients": {"models", "core"},

@@ -9,7 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from backend.app.models.enums import DataStatus
+from backend.app.models.enums import Category, DataStatus
 # Allowed exception to one-way imports: RT-104 is a model invariant (see CLAUDE.md).
 from backend.app.services.freshness import freshness_status
 
@@ -43,3 +43,9 @@ class ERFacility(_FacilityBase):
 
 class PharmacyFacility(_FacilityBase):
     open_until: str = Field(pattern=HHMM_PATTERN)  # "HH:MM", local time
+
+
+class OtcAdvice(BaseModel):
+    category: Category
+    items: list[str]  # generic first-aid items only, never prescription drugs
+    call_119: bool

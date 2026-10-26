@@ -9,7 +9,12 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from backend.app.clients.mcp_client import McpClientError, get_mcp_client
-from backend.app.controllers import facilities_er_controller, facilities_pharmacy_controller, health_controller
+from backend.app.controllers import (
+    facilities_er_controller,
+    facilities_pharmacy_controller,
+    health_controller,
+    otc_controller,
+)
 from backend.app.core.config import settings
 
 MCP_ERROR_STATUS = {"UNAVAILABLE": 503, "TIMEOUT": 504, "TOOL_ERROR": 502, "BAD_RESPONSE": 502}
@@ -31,3 +36,4 @@ app.add_exception_handler(McpClientError, mcp_error_handler)
 app.include_router(health_controller.router, tags=["Health"])
 app.include_router(facilities_er_controller.router, tags=["Facilities"])
 app.include_router(facilities_pharmacy_controller.router, tags=["Facilities"])
+app.include_router(otc_controller.router, tags=["OTC"])

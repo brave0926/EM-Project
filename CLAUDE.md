@@ -14,7 +14,7 @@ Supervisor router (LangGraph) -> ER worker + Pharmacy worker in parallel (asynci
 
 ```
 backend/app/
-  controllers/  FastAPI routers      -> schemas, services, graph, core
+  controllers/  FastAPI routers      -> schemas, services, graph, models (enums for params), core
   graph/        LangGraph supervisor -> services, models, core
   services/     pure business logic  -> clients, models, core
   clients/      MCP client (network) -> models, core   (calls em-mcp-server over MCP)
