@@ -10,23 +10,34 @@ from mcp_server.server import build_server
 
 
 @pytest_asyncio.fixture
-async def api():
-    """Factory: api(**MockProvider kwargs, timeout_s=..., server=...) -> httpx client for the app,
-    with the app-wide MCP client pointed at an in-process em-mcp-server."""
+async def use_mcp():
+    """Factory: use_mcp(**MockProvider kwargs, timeout_s=..., server=...) points the app-wide
+    MCP client at an in-process em-mcp-server (or the given server/URL)."""
     clients: list[McpClient] = []
 
-    def make(timeout_s: float = 2.0, server=None, **provider_kwargs):
+    def make(timeout_s: float = 2.0, server=None, **provider_kwargs) -> McpClient:
         if server is None:
             server = build_server(MockProvider(**({"delay_ms_range": (0, 0), "seed": 1} | provider_kwargs)))
         mcp = McpClient(server, timeout_s=timeout_s)
         clients.append(mcp)
         set_mcp_client(mcp)
-        return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
+        return mcp
 
     yield make
     for mcp in clients:
         await mcp.aclose()
     set_mcp_client(None)
+
+
+@pytest_asyncio.fixture
+async def api(use_mcp):
+    """Factory: same arguments as use_mcp -> httpx client for the app."""
+
+    def make(**kwargs):
+        use_mcp(**kwargs)
+        return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
+
+    return make
 
 
 @pytest_asyncio.fixture
