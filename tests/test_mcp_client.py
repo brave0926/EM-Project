@@ -99,3 +99,23 @@ async def test_reconnects_after_dropped_connection():
         mcp._stop.set()  # simulate the connection dropping
         await asyncio.sleep(0)
         assert await mcp.get_otc(Category.CUT)
+
+
+@pytest.mark.asyncio
+async def test_silent_server_times_out_instead_of_hanging(silent_server_url):
+    mcp = McpClient(silent_server_url, timeout_s=0.3)
+    t0 = time.perf_counter()
+    with pytest.raises(McpClientError) as err:
+        await asyncio.wait_for(mcp.get_otc(Category.CUT), 5)
+    elapsed = time.perf_counter() - t0
+    await mcp.aclose()
+    assert err.value.code == "TIMEOUT"
+    assert elapsed < 0.3 + 0.2  # one budget for connect + call, no hang
+
+
+@pytest.mark.asyncio
+async def test_parallel_first_calls_share_one_lazy_handshake():
+    mcp = _client()
+    ers, otc = await asyncio.gather(mcp.get_er_beds("Chungju"), mcp.get_otc(Category.CUT))
+    await mcp.aclose()
+    assert ers and otc

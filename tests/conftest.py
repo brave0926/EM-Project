@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 import pytest_asyncio
 
@@ -25,3 +27,15 @@ async def api():
     for mcp in clients:
         await mcp.aclose()
     set_mcp_client(None)
+
+
+@pytest_asyncio.fixture
+async def silent_server_url():
+    """URL of a TCP server that accepts connections but never answers (hung em-mcp-server)."""
+
+    async def never_answer(reader, writer):
+        await asyncio.sleep(3600)
+
+    server = await asyncio.start_server(never_answer, "127.0.0.1", 0)
+    yield f"http://127.0.0.1:{server.sockets[0].getsockname()[1]}/mcp"
+    server.close()

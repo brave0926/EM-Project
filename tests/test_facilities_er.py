@@ -72,3 +72,11 @@ async def test_mcp_down_is_503(api):
         resp = await client.get("/facilities/er")
     assert resp.status_code == 503
     assert resp.json()["error"] == "UNAVAILABLE"
+
+
+@pytest.mark.asyncio
+async def test_hung_mcp_server_is_504_not_a_hang(api, silent_server_url):
+    async with api(server=silent_server_url, timeout_s=0.3) as client:
+        resp = await client.get("/facilities/er")
+    assert resp.status_code == 504
+    assert resp.json()["error"] == "TIMEOUT"
