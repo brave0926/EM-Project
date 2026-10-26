@@ -13,6 +13,8 @@ from backend.app.models.enums import DataStatus
 # Allowed exception to one-way imports: RT-104 is a model invariant (see CLAUDE.md).
 from backend.app.services.freshness import freshness_status
 
+HHMM_PATTERN = r"^([01]\d|2[0-3]):[0-5]\d$"  # local time "HH:MM"
+
 
 class Location(BaseModel):
     name: str
@@ -40,4 +42,4 @@ class ERFacility(_FacilityBase):
 
 
 class PharmacyFacility(_FacilityBase):
-    open_until: str = Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")  # "HH:MM", local time
+    open_until: str = Field(pattern=HHMM_PATTERN)  # "HH:MM", local time

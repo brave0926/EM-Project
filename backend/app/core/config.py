@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
+from datetime import timedelta, timezone
 
 from pydantic import BaseModel, Field
 
 STALE_AFTER_MIN = 180  # RT-104: data older than this is UNCERTAIN
 TOOL_TIMEOUT_S = 2.0  # RT-102: one MCP tool call
+KST = timezone(timedelta(hours=9))  # local time for opening hours (no DST in Korea)
 
 
 class Settings(BaseModel):
