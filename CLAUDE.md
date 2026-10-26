@@ -39,6 +39,10 @@ GET  /metrics       metrics_controller.py               metrics_service.py      
 ```
 
 - Services return domain data (models or plain values); controllers map it to schemas.
+- The backend reaches data only through the MCP client. Never import mcp_server or a provider from backend/.
+- Build order: B3 builds the MCP server and MCP client first; /facilities/er, /facilities/ph and /otc/{cat} come after, on top of the client.
+- /metrics returns a JSON summary (no Prometheus format).
+- /sessions/{id} and the triage stream wait until LangGraph and SSE are in place.
 - Imports are one-way, top to bottom. No layer imports a layer above it.
 - Controllers contain no logic: parse the request, call a service or graph, return a schema.
 - Services never import FastAPI (or anything HTTP); they stay testable without a server.
