@@ -5,3 +5,4 @@ pydantic
 langgraph
 pytest
 pytest-asyncio
+mcp>=2.3,<3

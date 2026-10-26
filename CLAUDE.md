@@ -67,7 +67,7 @@ data.go.kr is NOT available. Use MockProvider (NMC-like fields: hvec, tel, fetch
 - Python 3.11+, type hints, Pydantic, async only.
 - Small commits, pytest for new logic, run tests before saying done.
 - Not medical advice; 119 prompt for critical cases.
-- Ask before adding dependencies beyond fastapi, uvicorn, httpx, pydantic, langgraph, pytest.
+- Ask before adding dependencies beyond fastapi, uvicorn, httpx, pydantic, langgraph, pytest, mcp (v2 SDK: `MCPServer`, not FastMCP).
 
 ## Git workflow
 
