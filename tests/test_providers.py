@@ -2,7 +2,8 @@ import time
 
 import pytest
 
-from backend.models import Category, DataStatus, Location
+from backend.app.models.domain import Location
+from backend.app.models.enums import Category, DataStatus
 from mcp_server.providers import (
     LiveProvider,
     MockProvider,

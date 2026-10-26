@@ -1,6 +1,6 @@
 """Data provider layer. MockProvider is the default; LiveProvider awaits a data.go.kr key.
 
-All mock data is labelled MOCK. Freshness (RT-104) is applied by the models in backend/models.py.
+All mock data is labelled MOCK. Freshness (RT-104) is applied by the domain models in backend/app/models/domain.py.
 """
 
 from __future__ import annotations
@@ -11,7 +11,9 @@ import random
 from abc import ABC, abstractmethod
 from datetime import datetime, time, timedelta, timezone
 
-from backend.models import Category, ERFacility, Location, PharmacyFacility, haversine_km
+from backend.app.models.domain import ERFacility, Location, PharmacyFacility
+from backend.app.models.enums import Category
+from backend.app.services.geo import haversine_km
 
 KST = timezone(timedelta(hours=9))
 

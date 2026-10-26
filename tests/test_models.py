@@ -3,17 +3,11 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 
-from backend.models import (
-    Category,
-    DataStatus,
-    ERFacility,
-    Location,
-    PharmacyFacility,
-    Severity,
-    TriageResponse,
-    freshness_status,
-    haversine_km,
-)
+from backend.app.models.domain import ERFacility, Location, PharmacyFacility
+from backend.app.models.enums import Category, DataStatus, Severity
+from backend.app.schemas.triage import TriageResponseSchema
+from backend.app.services.freshness import freshness_status
+from backend.app.services.geo import haversine_km
 
 NOW = datetime(2026, 10, 26, 12, 0, tzinfo=timezone.utc)
 LOC = Location(name="Chungju (mock)", lat=36.991, lon=127.926)
@@ -39,7 +33,7 @@ def test_valid_response():
         fetched_at=datetime.now(timezone.utc),
         distance_km=1.2,
     )
-    resp = TriageResponse(
+    resp = TriageResponseSchema(
         severity=Severity.AMBER,
         category=Category.BURN,
         er=[_er()],

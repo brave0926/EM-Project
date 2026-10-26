@@ -10,6 +10,26 @@ User describes an emergency in free text (EN/RU/ZH/KO). The system finds the nea
 
 Supervisor router (LangGraph) -> ER worker + Pharmacy worker in parallel (asyncio) -> em-mcp-server -> data provider. FastAPI + SSE. SQLite for checkpoints and offline fallback.
 
+## Architecture rules
+
+```
+backend/app/
+  controllers/  FastAPI routers      -> schemas, services, graph, core
+  graph/        LangGraph supervisor -> services, models, core
+  services/     pure business logic  -> models, core
+  schemas/      API DTOs             -> models
+  models/       domain enums/entities-> core
+  core/         config               -> (nothing in app)
+mcp_server/     data providers       -> backend.app.models, backend.app.services
+```
+
+- Imports are one-way, top to bottom. No layer imports a layer above it.
+- Controllers contain no logic: parse the request, call a service or graph, return a schema.
+- Services never import FastAPI (or anything HTTP); they stay testable without a server.
+- Models are domain (what the system knows); schemas are API (what clients send and receive).
+- Keep package `__init__.py` files empty (no re-exports) to avoid import cycles.
+- Single allowed exception: models/domain.py uses services/freshness.py so RT-104 is enforced on every facility object. freshness.py must stay pure and import only core and models/enums.
+
 ## Latency contracts
 
 - RT-101 TTFT <= 1.50 s
