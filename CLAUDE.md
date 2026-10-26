@@ -16,11 +16,12 @@ Supervisor router (LangGraph) -> ER worker + Pharmacy worker in parallel (asynci
 backend/app/
   controllers/  FastAPI routers      -> schemas, services, graph, core
   graph/        LangGraph supervisor -> services, models, core
-  services/     pure business logic  -> models, core
+  services/     pure business logic  -> clients, models, core
+  clients/      MCP client (network) -> models, core   (calls em-mcp-server over MCP)
   schemas/      API DTOs             -> models
   models/       domain enums/entities-> core
   core/         config               -> (nothing in app)
-mcp_server/     data providers       -> backend.app.models, backend.app.services
+mcp_server/     em-mcp-server + data providers -> backend.app.models, backend.app.services
 ```
 
 Endpoint map: one controller, one service (one use case) and one schema module per endpoint.
