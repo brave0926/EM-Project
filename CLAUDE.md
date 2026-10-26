@@ -23,6 +23,22 @@ backend/app/
 mcp_server/     data providers       -> backend.app.models, backend.app.services
 ```
 
+Endpoint map: one controller, one service (one use case) and one schema module per endpoint.
+
+```
+Endpoint            Controller                          Service                        Schemas
+GET  /health        health_controller.py                health_service.py              health.py
+POST /api/triage    triage_controller.py                triage_service.py              triage.py
+(stream)            triage_stream_controller.py         triage_stream_service.py       triage_stream.py
+GET  /facilities/er facilities_er_controller.py         er_facility_service.py         er_facility.py
+GET  /facilities/ph facilities_pharmacy_controller.py   pharmacy_facility_service.py   pharmacy_facility.py
+GET  /otc/{cat}     otc_controller.py                   otc_service.py                 otc.py
+GET  /sessions/{id} sessions_controller.py              session_service.py             session.py
+POST /demo/chaos    demo_chaos_controller.py            chaos_service.py               chaos.py
+GET  /metrics       metrics_controller.py               metrics_service.py             metrics.py
+```
+
+- Services return domain data (models or plain values); controllers map it to schemas.
 - Imports are one-way, top to bottom. No layer imports a layer above it.
 - Controllers contain no logic: parse the request, call a service or graph, return a schema.
 - Services never import FastAPI (or anything HTTP); they stay testable without a server.
