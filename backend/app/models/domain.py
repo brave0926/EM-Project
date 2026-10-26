@@ -55,3 +55,6 @@ class TriageResult(BaseModel):
     category: Category
     severity: Severity
     call_119: bool
+
+
+LocationSource = Literal["request", "text", "default"]

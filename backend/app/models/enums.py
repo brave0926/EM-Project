@@ -30,3 +30,15 @@ class Language(StrEnum):
     RU = "ru"
     ZH = "zh"
     KO = "ko"
+
+
+class Notice(StrEnum):
+    """Warnings attached to a triage answer."""
+
+    ER_UNAVAILABLE = "ER_UNAVAILABLE"
+    PHARMACY_UNAVAILABLE = "PHARMACY_UNAVAILABLE"
+    OTC_UNAVAILABLE = "OTC_UNAVAILABLE"
+    NO_FREE_ER_BEDS = "NO_FREE_ER_BEDS"
+    NO_OPEN_PHARMACY = "NO_OPEN_PHARMACY"
+    DATA_UNCERTAIN = "DATA_UNCERTAIN"
+    LOCATION_DEFAULT = "LOCATION_DEFAULT"

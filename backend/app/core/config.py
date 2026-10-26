@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field
 
 STALE_AFTER_MIN = 180  # RT-104: data older than this is UNCERTAIN
 TOOL_TIMEOUT_S = 2.0  # RT-102: one MCP tool call
+LLM_TIMEOUT_S = 1.0  # advice rewrite budget; the template is used if the LLM is slower
+DEFAULT_REGION = "Chungju"
 KST = timezone(timedelta(hours=9))  # local time for opening hours (no DST in Korea)
 
 
