@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from backend.app.models.domain import ERFacility, Location, PharmacyFacility
-from backend.app.models.enums import Category, DataStatus, Severity
+from backend.app.models.enums import Category, DataStatus, Language, Severity
 from backend.app.schemas.triage import TriageResponseSchema
 from backend.app.services.freshness import freshness_status
 from backend.app.services.geo import haversine_km
@@ -34,8 +34,12 @@ def test_valid_response():
         distance_km=1.2,
     )
     resp = TriageResponseSchema(
+        language=Language.EN,
         severity=Severity.AMBER,
         category=Category.BURN,
+        location=LOC,
+        location_source="text",
+        at_time="02:00",
         er=[_er()],
         pharmacies=[pharm],
         advice="Cool the burn under running water.",

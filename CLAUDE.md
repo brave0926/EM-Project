@@ -29,7 +29,7 @@ Endpoint map: one controller, one service (one use case) and one schema module p
 ```
 Endpoint            Controller                          Service                        Schemas
 GET  /health        health_controller.py                health_service.py              health.py
-POST /api/triage    triage_controller.py                triage_service.py              triage.py
+POST /api/triage    triage_controller.py                graph/triage_graph.py          triage.py
 (stream)            triage_stream_controller.py         triage_stream_service.py       triage_stream.py
 GET  /facilities/er facilities_er_controller.py         er_facility_service.py         er_facility.py
 GET  /facilities/ph facilities_pharmacy_controller.py   pharmacy_facility_service.py   pharmacy_facility.py
@@ -40,6 +40,7 @@ GET  /metrics       metrics_controller.py               metrics_service.py      
 ```
 
 - Services return domain data (models or plain values); controllers map it to schemas.
+- /api/triage is orchestrated by graph/triage_graph.py (called by the controller), not a service: the graph calls services, so a service calling the graph would invert the layers.
 - main.py is the composition root: it may import clients to own the shared MCP client (lazy, closed on shutdown) and map McpClientError to HTTP (UNAVAILABLE 503, TIMEOUT 504, TOOL_ERROR/BAD_RESPONSE 502). Controllers never touch the client; services get it via clients.get_mcp_client().
 - The backend reaches data only through the MCP client. Never import mcp_server or a provider from backend/.
 - Build order: B3 builds the MCP server and MCP client first; /facilities/er, /facilities/ph and /otc/{cat} come after, on top of the client.

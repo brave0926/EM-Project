@@ -14,6 +14,7 @@ from backend.app.controllers import (
     facilities_pharmacy_controller,
     health_controller,
     otc_controller,
+    triage_controller,
 )
 from backend.app.core.config import settings
 
@@ -34,6 +35,7 @@ async def mcp_error_handler(_: Request, exc: Exception) -> JSONResponse:
 app = FastAPI(title=settings.title, description=settings.description, version=settings.version, lifespan=lifespan)
 app.add_exception_handler(McpClientError, mcp_error_handler)
 app.include_router(health_controller.router, tags=["Health"])
+app.include_router(triage_controller.router, tags=["Triage"])
 app.include_router(facilities_er_controller.router, tags=["Facilities"])
 app.include_router(facilities_pharmacy_controller.router, tags=["Facilities"])
 app.include_router(otc_controller.router, tags=["OTC"])
