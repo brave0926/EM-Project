@@ -89,3 +89,12 @@ async def test_live_provider_without_key_raises_provider_error():
     with pytest.raises(ProviderError, match="NO_KEY"):
         await live.get_pharmacies(CHUNGJU)
     assert await live.get_otc(Category.CUT)  # static lists, no upstream call
+
+
+@pytest.mark.asyncio
+async def test_none_open_lists_three_nearest_closed():
+    found = await _fast().get_pharmacies(CHUNGJU, at_time="07:00")  # all closed 06:00-09:00
+    assert len(found) == 3 and all(p.is_open is False and p.open_until for p in found)
+    assert [p.distance_km for p in found] == sorted(p.distance_km for p in found)
+    open_found = await _fast().get_pharmacies(CHUNGJU, at_time="05:00")
+    assert all(p.is_open is True for p in open_found)  # one is open: closed ones are not listed

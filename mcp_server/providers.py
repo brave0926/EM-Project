@@ -70,6 +70,19 @@ def _hhmm(value: str) -> time:
     return datetime.strptime(value, "%H:%M").time()
 
 
+CLOSED_SHOWN = 3  # nearest closed pharmacies listed when none is known to be open
+
+
+def with_closed_fallback(
+    listed: list[PharmacyFacility], closed: list[PharmacyFacility]
+) -> list[PharmacyFacility]:
+    """Open and unknown-hours pharmacies, nearest first. If none is known to be open, the nearest
+    closed ones are added (is_open=False, open_until = closing time) so the user still sees options."""
+    if not any(p.is_open for p in listed):
+        listed = listed + sorted(closed, key=lambda p: p.distance_km)[:CLOSED_SHOWN]
+    return sorted(listed, key=lambda p: p.distance_km)
+
+
 def is_open(at: time, open_from: time, open_until: time) -> bool:
     """True if `at` falls in [open_from, open_until), handling hours that cross midnight."""
     if open_from <= open_until:
@@ -131,15 +144,15 @@ class MockProvider(DataProvider):
                 name=name,
                 location=Location(name=area, lat=lat, lon=lon),
                 open_until=until,
+                is_open=is_open(at, _hhmm(start), _hhmm(until)),
                 tel=tel,
                 fetched_at=fetched_at,
                 source="MOCK",
                 distance_km=haversine_km(near.lat, near.lon, lat, lon),
             )
             for name, area, lat, lon, start, until, tel in _PHARMACIES
-            if is_open(at, _hhmm(start), _hhmm(until))
         ]
-        return sorted(pharmacies, key=lambda f: f.distance_km)
+        return with_closed_fallback([p for p in pharmacies if p.is_open], [p for p in pharmacies if not p.is_open])
 
     async def get_otc(self, category: Category) -> list[str]:
         await self._simulate_call()
@@ -362,22 +375,20 @@ class LiveProvider(DataProvider):
         fetched_at = datetime.now(timezone.utc)
         # at_time is a time of day, read as today in KST: the radius response only has today's hours
         at = _hhmm(at_time) if at_time else datetime.now(KST).time()
-        pharmacies = []
+        pharmacies, closed = [], []
         for item in items:
             lat, lon = _float(item, "latitude"), _float(item, "longitude")
             if lat is None or lon is None:
                 continue
             start, end = parse_nmc_hhmm(_text(item, "startTime")), parse_nmc_hhmm(_text(item, "endTime"))
             status = open_status(at, start, end)
-            if status is False:
-                continue
             name = _text(item, "dutyName") or _text(item, "hpid") or "unknown pharmacy"
             distance = _float(item, "distance")
-            pharmacies.append(
+            (closed if status is False else pharmacies).append(
                 PharmacyFacility(
                     name=name,
                     location=Location(name=_text(item, "dutyAddr") or name, lat=lat, lon=lon),
-                    open_until=end.strftime("%H:%M") if end is not None and status else None,
+                    open_until=end.strftime("%H:%M") if end is not None and status is not None else None,
                     is_open=status,
                     tel=_text(item, "dutyTel1") or "",
                     fetched_at=fetched_at,
@@ -386,7 +397,7 @@ class LiveProvider(DataProvider):
                     else haversine_km(near.lat, near.lon, lat, lon),
                 )
             )
-        return sorted(pharmacies, key=lambda f: f.distance_km)
+        return with_closed_fallback(pharmacies, closed)
 
     async def get_otc(self, category: Category) -> list[str]:
         return list(_OTC[category])  # no data.go.kr source: static generic first-aid lists

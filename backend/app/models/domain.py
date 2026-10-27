@@ -44,7 +44,7 @@ class ERFacility(_FacilityBase):
 
 class PharmacyFacility(_FacilityBase):
     open_until: str | None = Field(default=None, pattern=HHMM_PATTERN)  # "HH:MM" local; None = unknown
-    is_open: bool | None = True  # at the requested time; None = unknown (no hours in the source)
+    is_open: bool | None = True  # at the requested time; False = closed (listed only if none is open); None = unknown
 
 
 class OtcAdvice(BaseModel):

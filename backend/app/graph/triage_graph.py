@@ -53,6 +53,7 @@ class TriageState(TypedDict, total=False):
     lon: float | None
     at_time: str | None
     # filled by the nodes
+    requested_time: str | None  # time asked for (request or text); None = now
     triage: TriageResult
     location: Location
     location_source: LocationSource
@@ -66,12 +67,14 @@ class TriageState(TypedDict, total=False):
 async def triage_node(state: TriageState) -> TriageState:
     query = state["query"]
     location, source = location_service.resolve_location(query, state.get("lat"), state.get("lon"))
+    at_time = state.get("at_time") or time_service.parse_time(query)
     return {
         "language": state.get("language") or language_service.detect_language(query),
         "triage": classifier_service.classify(query),
         "location": location,
         "location_source": source,
-        "at_time": state.get("at_time") or time_service.parse_time(query),
+        "at_time": at_time,
+        "requested_time": at_time,
         "notices": [Notice.LOCATION_DEFAULT] if source == "default" else [],
     }
 
@@ -110,7 +113,7 @@ async def pharmacy_worker(state: TriageState) -> TriageState:
         update["at_time"], found, notices = pharmacies
         update["pharmacies"] = found[:TOP_N]
         update["notices"] += notices
-        if not found:
+        if not any(p.is_open for p in found):  # empty, or only closed / unknown hours
             update["notices"].append(Notice.NO_OPEN_PHARMACY)
     if isinstance(otc, BaseException):
         log.warning("otc lookup failed", exc_info=otc)
@@ -125,7 +128,8 @@ async def advise(state: TriageState) -> TriageState:
     extra = advice_service.data_notices(er, pharmacies)
     notices = list(dict.fromkeys([*state.get("notices", []), *extra]))
     text = advice_service.build_advice(
-        state["language"], state["triage"], er, pharmacies, state.get("otc", []), notices
+        state["language"], state["triage"], er, pharmacies, state.get("otc", []), notices,
+        state.get("requested_time"),
     )
     return {"advice": await advice_service.polish_advice(text, state["language"]), "notices": extra}
 

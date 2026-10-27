@@ -50,16 +50,20 @@ Pharmacy (`PharmacyFacility`)
 | `location` | `latitude`, `longitude`, `dutyAddr` | |
 | `distance_km` | `distance` (km, from the API) | haversine if absent; sorted nearest first |
 | `is_open` | `startTime` / `endTime` (today, HHMM) | `is_open()` with midnight crossover; `2400`+ means past midnight; equal start/end = 24 h; missing hours -> `None` |
-| `open_until` | `endTime` as `HH:MM` | `None` when open status is unknown |
+| `open_until` | `endTime` as `HH:MM` | the closing time, also for a closed pharmacy; `None` when the hours are unknown |
 
-Closed pharmacies are dropped; open and unknown ones are returned. Advice only names a pharmacy known to be open.
+Open pharmacies and those with unknown hours are returned (unknown: shown as "hours unknown, call first").
+If none is known to be open at `at_time`, the 3 nearest closed ones are added with `is_open=false` and
+their closing time, and the triage answer carries `NO_OPEN_PHARMACY` ("No open pharmacy found near you at HH:MM",
+or "now" when no time was given). Advice only names a pharmacy known to be open; with only closed ones it says
+so and points to the ER for a serious condition. MockProvider follows the same rule.
 
 ## Limits
 
 - Quota: 1000 calls per day per operation. One cold ER request costs 1 + (number of hospitals) calls
   (3 for Chungju), a warm one 0-1; a pharmacy request costs 1.
-- Pharmacy hours: the location operation only returns **today's** `startTime`/`endTime`. `at_time` is a time of day
-  and is read as today (KST). Hours for another day, and late-night hours carried over from yesterday
+- Pharmacy hours: the location operation (radius response) only returns **today's** `startTime`/`endTime`.
+  `at_time` is a time of day and is read as today (KST); open status for any other day is unknown. Hours for another day, and late-night hours carried over from yesterday
   (e.g. yesterday until 02:00 when you ask at 01:00), are not visible; open status is unknown when the hours
   are missing. The week schedule (`dutyTime1s/1c` ... `dutyTime8s/8c`) is in `getParmacyListInfoInqire`, which has
   no distance; not used yet.

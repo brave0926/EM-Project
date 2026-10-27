@@ -97,7 +97,16 @@ async def test_stale_data_and_default_location_notices(use_mcp):
 async def test_no_open_pharmacy_notice(use_mcp):
     use_mcp()
     out = await run_triage("small cut near Chungju Station at 07:00")  # mock: none open 06:00-09:00
-    assert out.pharmacies == [] and Notice.NO_OPEN_PHARMACY in out.notices
+    assert Notice.NO_OPEN_PHARMACY in out.notices
+    # the 3 nearest are still listed, closed, with their closing time
+    assert [(p.name, p.is_open, p.open_until) for p in out.pharmacies] == [
+        ("Station Night Pharmacy (mock)", False, "04:00"),
+        ("Campus Pharmacy (mock)", False, "23:00"),
+        ("Yeonsu Central Pharmacy (mock)", False, "06:00"),
+    ]
+    assert "No open pharmacy found near you at 07:00." in out.advice
+    assert "closed then. If the condition is serious, go to the ER." in out.advice
+    assert "Open pharmacy:" not in out.advice
     out = await run_triage("small cut near Chungju Station at 05:30")  # only Yeonsu Central is open
     assert [p.name for p in out.pharmacies] == ["Yeonsu Central Pharmacy (mock)"]
 

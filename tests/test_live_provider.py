@@ -279,3 +279,20 @@ def test_provider_selection_and_key_fallback(monkeypatch):
     assert provider._er_key == provider._ph_key == "er+key"
     monkeypatch.setenv("EM_DATA_GO_KR_KEY_PHARMACY", "ph-key")
     assert get_provider()._ph_key == "ph-key"
+
+
+@pytest.mark.asyncio
+async def test_none_open_lists_three_nearest_closed_with_closing_time():
+    found = await live(Upstream()).get_pharmacies(PATIENT, at_time="02:00")  # sample: all close by 24:00
+    assert [(p.name, p.is_open, p.open_until) for p in found] == [
+        ("세원약국", False, "19:30"), ("안재경약국", False, "23:30"), ("이수약국", False, "00:00"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_unknown_hours_stay_listed_next_to_closed():
+    xml = edit(sample("pharmacies_radius.xml"), "C2300572", startTime=None, endTime=None)
+    found = await live(Upstream(getParmacyLcinfoInqire=xml)).get_pharmacies(PATIENT, at_time="02:00")
+    by_name = {p.name: (p.is_open, p.open_until) for p in found}
+    assert by_name["안재경약국"] == (None, None)  # hours unknown: shown, never dropped
+    assert [p.is_open for p in found].count(False) == 3

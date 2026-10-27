@@ -115,7 +115,7 @@ def _cut_short(run: _Run) -> list[StreamEvent]:
     if "advice" not in run.stages:
         text = advice_service.build_advice(
             state["language"], state["triage"], state.get("er", []), state.get("pharmacies", []),
-            state.get("otc", []), run.notices,
+            state.get("otc", []), run.notices, state.get("requested_time"),
         )
         events.append(AdviceEvent(language=state["language"], advice=text, t_ms=run.stamp("advice")))
     return events

@@ -27,7 +27,9 @@ _T: dict[Language, dict[str, str]] = {
         "ph": "Open pharmacy: {name} ({km} km, open until {until}, tel {tel}).",
         "otc": "Useful first-aid items: {items}.",
         Notice.NO_FREE_ER_BEDS: "No ER with free beds found nearby. Call 119 for guidance.",
-        Notice.NO_OPEN_PHARMACY: "No open pharmacy found nearby right now.",
+        Notice.NO_OPEN_PHARMACY: "No open pharmacy found near you at {time}.",
+        "no_ph_now": "No open pharmacy found near you now.",
+        "ph_closed": "The nearest pharmacies are listed with their closing times, but they are closed then. If the condition is serious, go to the ER.",
         Notice.ER_UNAVAILABLE: "ER data is unavailable right now. Call 119 if you need an ER.",
         Notice.PHARMACY_UNAVAILABLE: "Pharmacy data is unavailable right now.",
         Notice.OTC_UNAVAILABLE: "First-aid item suggestions are unavailable right now.",
@@ -50,7 +52,9 @@ _T: dict[Language, dict[str, str]] = {
         "ph": "Открытая аптека: {name} ({km} км, открыта до {until}, тел. {tel}).",
         "otc": "Полезные средства первой помощи: {items}.",
         Notice.NO_FREE_ER_BEDS: "Рядом не найдено отделений со свободными местами. Звоните 119 за помощью.",
-        Notice.NO_OPEN_PHARMACY: "Сейчас рядом нет открытых аптек.",
+        Notice.NO_OPEN_PHARMACY: "Рядом с вами нет аптек, открытых в {time}.",
+        "no_ph_now": "Рядом с вами сейчас нет открытых аптек.",
+        "ph_closed": "Ближайшие аптеки показаны с временем закрытия, но в это время они закрыты. Если состояние серьёзное, обратитесь в отделение неотложной помощи.",
         Notice.ER_UNAVAILABLE: "Данные об отделениях неотложной помощи сейчас недоступны. Если нужна помощь, звоните 119.",
         Notice.PHARMACY_UNAVAILABLE: "Данные об аптеках сейчас недоступны.",
         Notice.OTC_UNAVAILABLE: "Рекомендации по средствам первой помощи сейчас недоступны.",
@@ -73,7 +77,9 @@ _T: dict[Language, dict[str, str]] = {
         "ph": "营业中的药店：{name}（{km}公里，营业至{until}，电话 {tel}）。",
         "otc": "可用的急救用品：{items}。",
         Notice.NO_FREE_ER_BEDS: "附近没有找到有空床的急诊室。请拨打119寻求指导。",
-        Notice.NO_OPEN_PHARMACY: "附近目前没有营业中的药店。",
+        Notice.NO_OPEN_PHARMACY: "{time}时您附近没有营业的药店。",
+        "no_ph_now": "您附近现在没有营业的药店。",
+        "ph_closed": "已列出最近的药店及其关门时间，但该时间均未营业。如情况严重，请前往急诊室。",
         Notice.ER_UNAVAILABLE: "目前无法获取急诊室数据。如需急诊，请拨打119。",
         Notice.PHARMACY_UNAVAILABLE: "目前无法获取药店数据。",
         Notice.OTC_UNAVAILABLE: "目前无法提供急救用品建议。",
@@ -96,7 +102,9 @@ _T: dict[Language, dict[str, str]] = {
         "ph": "영업 중인 약국: {name} ({km}km, {until}까지 영업, 전화 {tel}).",
         "otc": "도움이 되는 응급용품: {items}.",
         Notice.NO_FREE_ER_BEDS: "근처에 병상이 있는 응급실을 찾지 못했습니다. 119에 전화해 안내를 받으세요.",
-        Notice.NO_OPEN_PHARMACY: "지금 근처에 영업 중인 약국이 없습니다.",
+        Notice.NO_OPEN_PHARMACY: "{time}에 근처에서 영업 중인 약국을 찾지 못했습니다.",
+        "no_ph_now": "지금 근처에서 영업 중인 약국을 찾지 못했습니다.",
+        "ph_closed": "가까운 약국을 영업 종료 시간과 함께 표시했지만 그 시간에는 문을 닫습니다. 상태가 심각하면 응급실로 가세요.",
         Notice.ER_UNAVAILABLE: "지금은 응급실 정보를 가져올 수 없습니다. 응급실이 필요하면 119에 전화하세요.",
         Notice.PHARMACY_UNAVAILABLE: "지금은 약국 정보를 가져올 수 없습니다.",
         Notice.OTC_UNAVAILABLE: "지금은 응급용품 추천을 제공할 수 없습니다.",
@@ -121,6 +129,12 @@ def prompt_119(language: Language) -> str:
     return _T[language]["red"]
 
 
+def _notice(t: dict[str, str], notice: Notice, at_time: str | None) -> str:
+    if notice is Notice.NO_OPEN_PHARMACY:
+        return t[notice].format(time=at_time) if at_time else t["no_ph_now"]
+    return t[notice]
+
+
 def _km(distance_km: float | None) -> str:
     return "?" if distance_km is None else f"{distance_km:.1f}"
 
@@ -132,7 +146,9 @@ def build_advice(
     pharmacies: list[PharmacyFacility],
     otc: list[str],
     notices: list[Notice],
+    at_time: str | None = None,
 ) -> str:
+    """at_time: the time the user asked for (HH:MM); None means now."""
     t = _T[language]
     lines = [t[triage.severity.value], t[triage.category.value]]
     free = [e for e in er if e.hvec > 0]
@@ -143,9 +159,11 @@ def build_advice(
         if known_open:
             p = known_open[0]
             lines.append(t["ph"].format(name=p.name, km=_km(p.distance_km), until=p.open_until, tel=p.tel))
+        elif any(p.is_open is False for p in pharmacies):
+            lines.append(t["ph_closed"])
         if otc:
             lines.append(t["otc"].format(items=", ".join(otc)))
-    lines += [t[n] for n in notices]
+    lines += [_notice(t, n, at_time) for n in notices]
     lines.append(t["disclaimer"])
     return "\n".join(lines)
 

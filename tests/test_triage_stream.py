@@ -22,8 +22,9 @@ NOW = datetime.now(timezone.utc)
 class FakeMcp:
     """Per-tool delay in seconds, or "hang" (sleeps for ever) or "down" (UNAVAILABLE)."""
 
-    def __init__(self, er=0.0, pharmacy=0.0, otc=0.0) -> None:
+    def __init__(self, er=0.0, pharmacy=0.0, otc=0.0, pharmacy_open=True) -> None:
         self.delay = {"er": er, "pharmacy": pharmacy, "otc": otc}
+        self.pharmacy_open = pharmacy_open
         self.cancelled: list[str] = []
 
     async def _wait(self, tool: str) -> None:
@@ -44,7 +45,8 @@ class FakeMcp:
     async def get_pharmacies(self, near, at_time=None):
         await self._wait("pharmacy")
         return [PharmacyFacility(name="Fake Pharmacy", location=Location(name="b", lat=36.97, lon=127.9),
-                                 open_until="04:00", tel="043-000-0001", fetched_at=NOW, distance_km=0.3)]
+                                 open_until="04:00" if self.pharmacy_open else "19:30", is_open=self.pharmacy_open,
+                                 tel="043-000-0001", fetched_at=NOW, distance_km=0.3)]
 
     async def get_otc(self, category):
         await self._wait("otc")
@@ -182,3 +184,17 @@ def test_swagger_documents_the_stream():
     content = op["responses"]["200"]["content"]["text/event-stream"]
     assert "event: triage" in content["example"] and "rt105_ok" in op["responses"]["200"]["description"]
     assert op["tags"] == ["Triage"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("query", "when"), [(AMBER, "at 02:00"), ("Severe burn near Chungju Station", "now")])
+async def test_no_open_pharmacy_streams_closed_ones_with_the_requested_time(fake, query, when):
+    fake(pharmacy_open=False)
+    _, events = await post_stream(query)
+    pharmacy = dict(events)["pharmacy"]["facilities"]
+    assert [(p["name"], p["is_open"], p["open_until"]) for p in pharmacy] == [("Fake Pharmacy", False, "19:30")]
+    assert "NO_OPEN_PHARMACY" in [d["notice"] for n, d in events if n == "notice"]
+    advice = dict(events)["advice"]["advice"]
+    assert f"No open pharmacy found near you {when}." in advice
+    assert "If the condition is serious, go to the ER." in advice
+    assert dict(events)["triage"]["at_time"] == ("02:00" if when != "now" else None)

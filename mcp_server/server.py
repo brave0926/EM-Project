@@ -44,7 +44,10 @@ def build_server(provider: DataProvider | None = None) -> MCPServer:
         near = Location(name="query point", lat=lat, lon=lon) if lat is not None and lon is not None else None
         return await _guard(provider.get_er_beds(region, near))
 
-    @server.tool(description="Pharmacies open at at_time (HH:MM, default now in KST), nearest first.")
+    @server.tool(
+        description="Pharmacies open at at_time (HH:MM, default now in KST), nearest first. If none is "
+        "open, the 3 nearest closed ones with is_open=false and their closing time."
+    )
     async def get_pharmacies(lat: float, lon: float, at_time: str | None = None) -> list[PharmacyFacility]:
         near = Location(name="query point", lat=lat, lon=lon)
         return await _guard(provider.get_pharmacies(near, at_time))
