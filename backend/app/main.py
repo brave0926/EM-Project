@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.app.clients.mcp_client import McpClientError, get_mcp_client
 from backend.app.controllers import (
@@ -17,7 +18,7 @@ from backend.app.controllers import (
     triage_controller,
     triage_stream_controller,
 )
-from backend.app.core.config import settings
+from backend.app.core.config import FRONTEND_DIR, settings
 
 MCP_ERROR_STATUS = {"UNAVAILABLE": 503, "TIMEOUT": 504, "TOOL_ERROR": 502, "BAD_RESPONSE": 502}
 
@@ -41,3 +42,5 @@ app.include_router(triage_stream_controller.router, tags=["Triage"])
 app.include_router(facilities_er_controller.router, tags=["Facilities"])
 app.include_router(facilities_pharmacy_controller.router, tags=["Facilities"])
 app.include_router(otc_controller.router, tags=["OTC"])
+# Last: the page at / (same origin as the API, so no CORS); API routes and /docs match first.
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

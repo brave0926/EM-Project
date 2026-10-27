@@ -18,6 +18,7 @@ BREAKER_OPEN_S = 30.0  # how long an open circuit skips upstream calls
 END_TO_END_S = 6.0  # RT-105: whole triage (the stream is cut off here)
 LLM_TIMEOUT_S = 1.0  # advice rewrite budget; the template is used if the LLM is slower
 DEFAULT_REGION = "Chungju"
+FRONTEND_DIR = ROOT / "frontend"  # served at / by main.py
 KST = timezone(timedelta(hours=9))  # local time for opening hours (no DST in Korea)
 
 

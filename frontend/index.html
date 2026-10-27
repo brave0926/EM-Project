@@ -41,82 +41,117 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
 .met{display:flex;gap:18px;flex-wrap:wrap;font:12px var(--mono);color:var(--cy);margin-top:8px}
 .note{font-size:11px;color:var(--mu);margin-top:10px}
 @media(max-width:720px){.g2,.row{grid-template-columns:1fr}}
+.mock.lv{color:var(--em);border-color:var(--em)}
+.loc{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:10px}
+.loc>div{flex:1;min-width:180px}
+.loc button{background:transparent;color:var(--cy);border:1px solid var(--cy);border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer}
+#locst{font-size:12px;color:var(--mu);margin-top:6px;min-height:18px}
+#from{font-size:13px;color:var(--mu);margin-bottom:12px;display:none}
+#from.warn{color:var(--am)}
+#sev .c119{display:inline-block;margin-top:8px;background:var(--rd);color:#0f172a;padding:6px 16px;border-radius:6px;text-decoration:none;font-weight:700}
+#sev .p119{display:block;font-size:16px}
+.mu{background:rgba(148,163,184,.15);color:var(--mu)}
+.nt{font-size:13px;color:var(--am);margin-bottom:6px}
+#nts:empty::before,#hosp:empty::before,#pharm:empty::before{content:"\2014";color:var(--mu)}
+#err{display:none;background:rgba(251,113,133,.12);border:1px solid var(--rd);color:var(--rd);padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px}
+.go button:disabled{opacity:.6;cursor:wait}
 </style></head><body><div class="w">
-<header><div><h1><span>EM-Agent</span> <span class="mock">MOCK DATA</span></h1><div class="sub" id="t_sub"></div></div>
+<header><div><h1><span>EM-Agent</span> <span class="mock" id="srcTag" style="display:none"></span></h1><div class="sub" id="t_sub"></div></div>
 <div class="lang" id="lang"></div></header>
 
 <div class="panel">
 <label id="t_prob"></label><textarea id="q"></textarea>
 <div class="chips" id="chips"></div>
 <p class="sub" id="t_hint" style="margin-top:8px"></p>
-<div class="go"><button id="run"></button><label><input type="checkbox" id="sim"><span id="t_sim"></span></label></div>
+<div class="loc"><div><label id="t_place" for="place"></label><select id="place"></select></div><button id="geo" type="button"></button></div>
+<div id="locst"></div>
+<div class="go"><button id="run"></button><label style="display:none"><input type="checkbox" id="sim"><span id="t_sim"></span></label></div>
 </div>
 
-<div id="sev"></div>
+<div id="err" role="alert"></div>
+<div id="sev" role="status"></div>
+<div id="from"></div>
 <div class="g2">
 <div class="panel sec"><h3 id="t_h"></h3><div id="hosp"></div></div>
 <div class="panel sec"><h3 id="t_p"></h3><div id="pharm"></div></div>
 </div>
+<div class="panel sec"><h3 id="t_n"></h3><div id="nts"></div></div>
 <div class="panel sec"><h3 id="t_a"></h3><div id="adv"></div></div>
 <div class="panel sec"><h3 id="t_tl"></h3><div id="tl"></div><div class="met" id="met"></div></div>
 <p class="note" id="t_note"></p>
 </div>
 <script>
-var L={en:{sub:"Real-time emergency triage and facility dispatch (prototype)",prob:"Describe the problem",ph:"My friend has a severe burn on his hand. We are near Chungju Station, it is 2 AM. Where should we go?",hint:"Write your location and the time in the message, e.g. \"near Chungju Station, 2 AM\". Known demo areas: Chungju Station, Yeonsu-dong, Konkuk campus.",run:"Find help now",sim:"Simulate government API timeout (>2 s)",h:"Nearest emergency room",p:"Nearest open pharmacy",a:"Guidance",tl:"Real-time execution trace",beds:"free beds",km:"km",open:"open until",call:"Call",c119:"Call 119 now",R:"RED: possible life threat. Call 119 immediately.",A:"AMBER: urgent care needed.",G:"GREEN: minor problem. Pharmacy first.",live:"LIVE",cached:"CACHED",unc:"UNCERTAIN: data older than 3 h, phone first",nob:"No beds",note:"Prototype with mock data. Not medical advice. In an emergency call 119.",ttft:"TTFT",tot:"Total",st:"analysing request...",chips:["Severe burn on hand, near Chungju Station, 2 AM","Deep cut, bleeding, Yeonsu-dong, 11 PM","Fever and headache, Konkuk campus, 3 AM","Chest pain, hard to breathe, near Chungju Station"],
-adv:{burn:"Cool the burn under clean running water for 10-20 minutes. Do not use ice or break blisters. Cover loosely with a sterile non-stick dressing. Go to the ER listed on the left and call ahead.",cut:"Press firmly with clean gauze for 10 minutes and raise the limb. If bleeding does not stop or the cut is deep, go to the ER now.",fever:"Rest, drink fluids, and consider a standard OTC fever reducer as labelled. Visit the pharmacy listed. Seek ER care if fever is very high, or there is confusion or stiff neck.",crit:"Do not wait. Call 119 now. Stay with the patient, keep them still, and follow dispatcher instructions. Go to the ER listed.",other:"Describe symptoms in more detail. The nearest pharmacy and ER are shown for reference."},otc:{burn:"OTC: sterile dressing, saline",cut:"OTC: sterile gauze, antiseptic",fever:"OTC: antipyretic (as labelled)",crit:"",other:""}},
-ru:{sub:"Экстренная сортировка и подбор учреждений в реальном времени (прототип)",prob:"Опишите проблему",ph:"У друга сильный ожог руки. Мы у вокзала Чхунджу, 2 часа ночи. Куда ехать?",hint:"Укажите в сообщении местоположение и время, например «у вокзала Чхунджу, 2 часа ночи». Демо-районы: вокзал Чхунджу, Ёнсу-дон, кампус Конкук.",run:"Найти помощь",sim:"Имитировать таймаут госAPI (>2 с)",h:"Ближайшее приёмное отделение",p:"Ближайшая работающая аптека",a:"Рекомендации",tl:"Трассировка выполнения",beds:"свободных коек",km:"км",open:"открыта до",call:"Позвонить",c119:"Звоните 119",R:"КРАСНЫЙ: возможна угроза жизни. Немедленно звоните 119.",A:"ЖЁЛТЫЙ: нужна срочная помощь.",G:"ЗЕЛЁНЫЙ: небольшая проблема. Сначала аптека.",live:"ЖИВЫЕ",cached:"КЭШ",unc:"НЕДОСТОВЕРНО: данные старше 3 ч, сначала позвоните",nob:"Нет коек",note:"Прототип с тестовыми данными. Не медицинская рекомендация. В экстренной ситуации звоните 119.",ttft:"TTFT",tot:"Всего",st:"анализ запроса...",chips:["Сильный ожог руки, у вокзала Чхунджу, 2 часа ночи","Глубокий порез, кровь, Ёнсу-дон, 23:00","Температура и головная боль, кампус Конкук, 3 часа ночи","Боль в груди, трудно дышать, у вокзала Чхунджу"],
-adv:{burn:"Охлаждайте ожог чистой проточной водой 10-20 минут. Не используйте лёд и не вскрывайте пузыри. Прикройте стерильной нетугой повязкой. Поезжайте в указанное приёмное отделение и позвоните заранее.",cut:"Плотно прижмите чистую марлю на 10 минут, поднимите конечность. Если кровь не останавливается или порез глубокий, срочно в приёмное отделение.",fever:"Покой, питьё, жаропонижающее без рецепта по инструкции. Зайдите в указанную аптеку. При очень высокой температуре, спутанности сознания или ригидности шеи нужна неотложная помощь.",crit:"Не ждите. Звоните 119. Оставайтесь с пациентом, не двигайте его, следуйте указаниям диспетчера. Затем в указанное приёмное отделение.",other:"Опишите симптомы подробнее. Ближайшие аптека и приёмное отделение показаны для справки."},otc:{burn:"Без рецепта: стерильная повязка, физраствор",cut:"Без рецепта: стерильная марля, антисептик",fever:"Без рецепта: жаропонижающее (по инструкции)",crit:"",other:""}},
-zh:{sub:"实时急救分诊与机构调度(原型)",prob:"请描述问题",ph:"我的朋友手部严重烧伤。我们在忠州站附近,现在凌晨2点。该去哪里?",hint:"请在消息中写明位置和时间,例如“忠州站附近,凌晨2点”。演示区域:忠州站、莲水洞、建国大学校区。",run:"立即查找",sim:"模拟政府接口超时(>2秒)",h:"最近的急诊室",p:"最近营业的药店",a:"处理建议",tl:"实时执行追踪",beds:"空床位",km:"公里",open:"营业至",call:"拨打",c119:"立即拨打119",R:"红色:可能危及生命,请立即拨打119。",A:"黄色:需要紧急就医。",G:"绿色:轻微问题,先去药店。",live:"实时",cached:"缓存",unc:"不确定:数据超过3小时,请先电话确认",nob:"无床位",note:"此为使用模拟数据的原型,不构成医疗建议。紧急情况请拨打119。",ttft:"首字时间",tot:"总耗时",st:"正在分析请求...",chips:["手部严重烧伤,忠州站附近,凌晨2点","深度割伤出血,莲水洞,晚上11点","发烧头痛,建国大学校区,凌晨3点","胸痛呼吸困难,忠州站附近"],
-adv:{burn:"用干净流动的冷水冲洗烧伤处10-20分钟,不要用冰,不要弄破水泡,用无菌非粘敷料松散覆盖。前往左侧急诊室并提前电话联系。",cut:"用干净纱布用力按压10分钟并抬高伤肢。若血流不止或伤口很深,请立即去急诊。",fever:"休息多饮水,可按说明使用非处方退烧药。请前往所列药店。若高烧不退、意识模糊或颈部僵硬,请就医。",crit:"不要等待,立即拨打119。陪伴患者,保持其静止,并听从调度员指示。然后前往所列急诊室。",other:"请更详细描述症状。此处显示最近的药店和急诊室供参考。"},otc:{burn:"非处方:无菌敷料、生理盐水",cut:"非处方:无菌纱布、消毒剂",fever:"非处方:退烧药(按说明)",crit:"",other:""}},
-ko:{sub:"실시간 응급 분류 및 시설 배정 (프로토타입)",prob:"문제를 설명해 주세요",ph:"친구가 손에 심한 화상을 입었어요. 충주역 근처이고 새벽 2시예요. 어디로 가야 하나요?",hint:"메시지에 위치와 시간을 적어 주세요. 예: \"충주역 근처, 새벽 2시\". 데모 지역: 충주역, 연수동, 건국대 캠퍼스.",run:"지금 찾기",sim:"공공 API 시간초과 시뮬레이션 (>2초)",h:"가장 가까운 응급실",p:"가장 가까운 영업 중 약국",a:"안내",tl:"실시간 실행 추적",beds:"가용 병상",km:"km",open:"영업 종료",call:"전화",c119:"지금 119 전화",R:"위험: 생명이 위태로울 수 있습니다. 즉시 119에 전화하세요.",A:"주의: 긴급 진료가 필요합니다.",G:"경미: 약국을 먼저 이용하세요.",live:"실시간",cached:"캐시",unc:"불확실: 3시간 이상 지난 데이터, 먼저 전화 확인",nob:"병상 없음",note:"모의 데이터를 사용한 프로토타입입니다. 의료 조언이 아닙니다. 응급 시 119에 전화하세요.",ttft:"첫 응답",tot:"총 시간",st:"요청 분석 중...",chips:["손에 심한 화상, 충주역 근처, 새벽 2시","깊은 상처, 출혈, 연수동, 밤 11시","열과 두통, 건국대 캠퍼스, 새벽 3시","가슴 통증, 호흡 곤란, 충주역 근처"],
-adv:{burn:"깨끗한 흐르는 물로 10-20분간 식히세요. 얼음을 쓰거나 물집을 터뜨리지 마세요. 멸균 비접착 드레싱으로 느슨하게 덮고, 왼쪽 응급실로 가기 전에 전화하세요.",cut:"깨끗한 거즈로 10분간 강하게 눌러 지혈하고 다친 부위를 높이 드세요. 출혈이 멈추지 않거나 깊으면 즉시 응급실로 가세요.",fever:"휴식과 수분 섭취, 일반의약품 해열제는 설명서대로 사용하세요. 표시된 약국을 이용하세요. 고열, 의식 혼미, 목 뻣뻣함이 있으면 응급실로 가세요.",crit:"지체하지 마세요. 지금 119에 전화하세요. 환자 곁을 지키고 움직이지 않게 하며 상황실 지시를 따르세요. 이후 표시된 응급실로 가세요.",other:"증상을 더 자세히 적어 주세요. 가장 가까운 약국과 응급실을 참고용으로 표시합니다."},otc:{burn:"일반의약품: 멸균 드레싱, 생리식염수",cut:"일반의약품: 멸균 거즈, 소독제",fever:"일반의약품: 해열제 (설명서대로)",crit:"",other:""}}};
-var KW={crit:/chest|breath|unconscious|bleeding heavily|가슴|호흡|의식|심한 출혈|грудь|дышать|без сознания|胸痛|呼吸|昏迷/i,burn:/burn|scald|화상|ожог|烧伤|烫伤/i,cut:/cut|bleed|laceration|상처|출혈|порез|кровь|割伤|出血/i,fever:/fever|headache|cold|열|두통|температур|голов|发烧|头痛/i};
-var LOCS=[{id:"st",la:36.971,lo:127.899,n:{en:"Chungju Station area",ru:"Район вокзала Чхунджу",zh:"忠州站附近",ko:"충주역 부근"}},{id:"ys",la:36.953,lo:127.942,n:{en:"Yeonsu-dong",ru:"Ёнсу-дон",zh:"莲水洞",ko:"연수동"}},{id:"ku",la:36.990,lo:127.926,n:{en:"Konkuk Univ. Chungju campus",ru:"Кампус Конкук (Чхунджу)",zh:"建国大学忠州校区",ko:"건국대 충주캠퍼스"}}];
-var HOSP=[{n:{en:"Chungju Medical Center ER (mock)",ru:"Приёмное Чхунджу Мед. центр (тест)",zh:"忠州医疗院急诊室(模拟)",ko:"충주의료원 응급실 (모의)"},la:36.975,lo:127.905,beds:5,age:3,tel:"043-000-0114"},{n:{en:"Konkuk Univ. Chungju Hospital ER (mock)",ru:"Приёмное Больницы Конкук (тест)",zh:"建国大学忠州医院急诊(模拟)",ko:"건국대충주병원 응급실 (모의)"},la:36.990,lo:127.925,beds:0,age:2,tel:"043-000-0200"},{n:{en:"Chungju Central ER (mock)",ru:"Центральное приёмное (тест)",zh:"忠州中央急诊(模拟)",ko:"충주중앙 응급실 (모의)"},la:36.960,lo:127.930,beds:2,age:200,tel:"043-000-0300"}];
-var PH=[{n:{en:"Yeonsu Central Pharmacy (mock)",ru:"Аптека Ёнсу Центральная (тест)",zh:"莲水中央药店(模拟)",ko:"연수중앙약국 (모의)"},la:36.954,lo:127.940,until:"06:00",tel:"043-000-0845"},{n:{en:"Station Night Pharmacy (mock)",ru:"Ночная аптека у вокзала (тест)",zh:"车站夜间药店(模拟)",ko:"역앞 심야약국 (모의)"},la:36.972,lo:127.897,until:"04:00",tel:"043-000-0711"},{n:{en:"Campus Pharmacy (mock)",ru:"Аптека кампуса (тест)",zh:"校区药店(模拟)",ko:"캠퍼스약국 (모의)"},la:36.989,lo:127.927,until:"23:00",tel:"043-000-0522"}];
-var cur="en",busy=false,$=function(i){return document.getElementById(i)};
-function km(a,b,c,d){var r=Math.PI/180,x=(c-a)*r,y=(d-b)*r*Math.cos(a*r);return Math.sqrt(x*x+y*y)*6371}
-function sl(ms){return new Promise(function(r){setTimeout(r,ms)})}
-var LK={st:/station|충주역|вокзал|忠州站|车站/i,ys:/yeonsu|연수|ёнсу|йонсу|莲水/i,ku:/konkuk|건국|конкук|建国/i};
-function findLoc(q){for(var i=0;i<LOCS.length;i++){if(LK[LOCS[i].id].test(q))return LOCS[i]}return LOCS[0]}
+var STREAM_URL="/api/triage/stream";
+var L={
+en:{sub:"Real-time emergency triage and facility dispatch (prototype)",prob:"Describe the problem",ph:"My friend has a severe burn on his hand. We are near Chungju Station, it is 2 AM. Where should we go?",hint:"Write your location and the time in the message, or pick a place below. Known demo areas: Chungju Station, Yeonsu-dong, City Hall.",place:"Location",placeNone:"From the message text",geo:"Use my location",locating:"Getting your location...",locOk:"Using your location",locErr:"Location not available: ",run:"Find help now",h:"Nearest emergency room",p:"Nearest open pharmacy",n:"Notices",a:"Guidance",tl:"Real-time execution trace",beds:"free beds",nob:"No free beds",km:"km",open:"open until",hoursUnk:"opening hours unknown",call:"Call",c119:"Call 119",R:"RED: possible life threat. Call 119 immediately.",A:"AMBER: urgent care needed.",G:"GREEN: minor problem. Pharmacy first.",LIVE:"LIVE",CACHED:"CACHED",UNCERTAIN:"UNCERTAIN",MOCK:"MOCK",callFirst:"call first",upd:"updated {t} ago",now:"updated just now",min:"min",hr:"h",from:"Distances are from: {n} (source: {s})",you:"your position",src:{request:"request",text:"text",default:"default"},defWarn:"Location not given: distances are from Chungju City Hall. Pick a place or use your location.",otc:"First-aid items",st:"analysing request...",tagMock:"MOCK DATA",tagLive:"LIVE DATA",ttft:"First event",tot:"Total",eNet:"Cannot reach the server. Check your connection. In an emergency call 119.",eHttp:"The server rejected the request ({c}).",eCut:"The connection ended before the answer was complete. In an emergency call 119.",note:"Prototype. Not medical advice. In an emergency call 119.",chips:["Severe burn on my hand, near Chungju Station, 2 AM","Deep cut, bleeding, Yeonsu-dong, 11 PM","Fever and headache near City Hall, 3 AM","Chest pain, hard to breathe, near Chungju Station"],
+N:{ER_UNAVAILABLE:"ER data is unavailable right now. Call 119 if you need an ER.",PHARMACY_UNAVAILABLE:"Pharmacy data is unavailable right now.",OTC_UNAVAILABLE:"First-aid item suggestions are unavailable right now.",NO_FREE_ER_BEDS:"No ER with free beds found nearby. Call 119 for guidance.",NO_OPEN_PHARMACY:"No open pharmacy found nearby right now.",DATA_UNCERTAIN:"Some facility data is over 3 hours old and may be wrong. Call ahead.",LOCATION_DEFAULT:"Location not given: distances are from Chungju City Hall.",FALLBACK_CACHE:"Live data is unavailable: showing the last saved data. Call ahead to confirm.",NO_DATA:"No saved facility data is available either."}},
+ru:{sub:"Экстренная сортировка и подбор учреждений в реальном времени (прототип)",prob:"Опишите проблему",ph:"У друга сильный ожог руки. Мы у вокзала Чхунджу, 2 часа ночи. Куда ехать?",hint:"Укажите в сообщении местоположение и время или выберите место ниже. Демо-районы: вокзал Чхунджу, Ёнсу-дон, мэрия.",place:"Местоположение",placeNone:"Из текста сообщения",geo:"Моё местоположение",locating:"Определяем местоположение...",locOk:"Используется ваше местоположение",locErr:"Местоположение недоступно: ",run:"Найти помощь",h:"Ближайшее приёмное отделение",p:"Ближайшая работающая аптека",n:"Уведомления",a:"Рекомендации",tl:"Трассировка выполнения",beds:"свободных коек",nob:"Нет свободных коек",km:"км",open:"открыта до",hoursUnk:"часы работы неизвестны",call:"Позвонить",c119:"Позвонить 119",R:"КРАСНЫЙ: возможна угроза жизни. Немедленно звоните 119.",A:"ЖЁЛТЫЙ: нужна срочная помощь.",G:"ЗЕЛЁНЫЙ: небольшая проблема. Сначала аптека.",LIVE:"ЖИВЫЕ",CACHED:"КЭШ",UNCERTAIN:"НЕДОСТОВЕРНО",MOCK:"ТЕСТ",callFirst:"сначала позвоните",upd:"обновлено {t} назад",now:"обновлено только что",min:"мин",hr:"ч",from:"Расстояния от: {n} (источник: {s})",you:"ваше местоположение",src:{request:"запрос",text:"текст",default:"по умолчанию"},defWarn:"Местоположение не указано: расстояния от мэрии Чхунджу. Выберите место или используйте своё местоположение.",otc:"Средства первой помощи",st:"анализ запроса...",tagMock:"ТЕСТОВЫЕ ДАННЫЕ",tagLive:"ЖИВЫЕ ДАННЫЕ",ttft:"Первое событие",tot:"Всего",eNet:"Нет связи с сервером. Проверьте подключение. В экстренной ситуации звоните 119.",eHttp:"Сервер отклонил запрос ({c}).",eCut:"Соединение прервалось до полного ответа. В экстренной ситуации звоните 119.",note:"Прототип. Не медицинская рекомендация. В экстренной ситуации звоните 119.",chips:["Сильный ожог руки, у вокзала Чхунджу, 2 часа ночи","Глубокий порез, кровь, Ёнсу-дон, 23:00","Температура и головная боль, у мэрии, 3 часа ночи","Боль в груди, трудно дышать, у вокзала Чхунджу"],
+N:{ER_UNAVAILABLE:"Данные об отделениях неотложной помощи сейчас недоступны. Если нужна помощь, звоните 119.",PHARMACY_UNAVAILABLE:"Данные об аптеках сейчас недоступны.",OTC_UNAVAILABLE:"Рекомендации по средствам первой помощи сейчас недоступны.",NO_FREE_ER_BEDS:"Рядом не найдено отделений со свободными местами. Звоните 119 за помощью.",NO_OPEN_PHARMACY:"Сейчас рядом нет открытых аптек.",DATA_UNCERTAIN:"Часть данных старше 3 часов и может быть неточной. Позвоните заранее.",LOCATION_DEFAULT:"Местоположение не указано: расстояния считаются от мэрии Чхунджу.",FALLBACK_CACHE:"Актуальные данные недоступны: показаны последние сохранённые. Позвоните заранее.",NO_DATA:"Сохранённых данных об учреждениях тоже нет."}},
+zh:{sub:"实时急救分诊与机构调度(原型)",prob:"请描述问题",ph:"我的朋友手部严重烧伤。我们在忠州站附近,现在凌晨2点。该去哪里?",hint:"请在消息中写明位置和时间,或在下方选择地点。演示区域:忠州站、莲水洞、市政府。",place:"位置",placeNone:"根据消息文字",geo:"使用我的位置",locating:"正在获取位置...",locOk:"正在使用您的位置",locErr:"无法获取位置:",run:"立即查找",h:"最近的急诊室",p:"最近营业的药店",n:"提示",a:"处理建议",tl:"实时执行追踪",beds:"空床位",nob:"无空床位",km:"公里",open:"营业至",hoursUnk:"营业时间未知",call:"拨打",c119:"拨打119",R:"红色:可能危及生命,请立即拨打119。",A:"黄色:需要紧急就医。",G:"绿色:轻微问题,先去药店。",LIVE:"实时",CACHED:"缓存",UNCERTAIN:"不确定",MOCK:"模拟",callFirst:"请先电话确认",upd:"{t}前更新",now:"刚刚更新",min:"分钟",hr:"小时",from:"距离起点:{n}(来源:{s})",you:"您的位置",src:{request:"请求",text:"文字",default:"默认"},defWarn:"未提供位置:距离以忠州市政府为起点。请选择地点或使用您的位置。",otc:"急救用品",st:"正在分析请求...",tagMock:"模拟数据",tagLive:"实时数据",ttft:"首个事件",tot:"总耗时",eNet:"无法连接服务器,请检查网络。紧急情况请拨打119。",eHttp:"服务器拒绝了请求({c})。",eCut:"连接在回答完成前中断。紧急情况请拨打119。",note:"原型,不构成医疗建议。紧急情况请拨打119。",chips:["手部严重烧伤,忠州站附近,凌晨2点","深度割伤出血,莲水洞,晚上11点","发烧头痛,市政府附近,凌晨3点","胸痛呼吸困难,忠州站附近"],
+N:{ER_UNAVAILABLE:"目前无法获取急诊室数据。如需急诊,请拨打119。",PHARMACY_UNAVAILABLE:"目前无法获取药店数据。",OTC_UNAVAILABLE:"目前无法提供急救用品建议。",NO_FREE_ER_BEDS:"附近没有找到有空床的急诊室。请拨打119寻求指导。",NO_OPEN_PHARMACY:"附近目前没有营业中的药店。",DATA_UNCERTAIN:"部分数据已超过3小时,可能不准确。请先打电话确认。",LOCATION_DEFAULT:"未提供位置:距离以忠州市政府为起点计算。",FALLBACK_CACHE:"目前无法获取实时数据:显示的是最近保存的数据。请先打电话确认。",NO_DATA:"也没有已保存的机构数据。"}},
+ko:{sub:"실시간 응급 분류 및 시설 배정 (프로토타입)",prob:"문제를 설명해 주세요",ph:"친구가 손에 심한 화상을 입었어요. 충주역 근처이고 새벽 2시예요. 어디로 가야 하나요?",hint:"메시지에 위치와 시간을 적거나 아래에서 장소를 고르세요. 데모 지역: 충주역, 연수동, 시청.",place:"위치",placeNone:"메시지 내용 기준",geo:"내 위치 사용",locating:"위치를 확인하는 중...",locOk:"내 위치를 사용합니다",locErr:"위치를 사용할 수 없습니다: ",run:"지금 찾기",h:"가장 가까운 응급실",p:"가장 가까운 영업 중 약국",n:"알림",a:"안내",tl:"실시간 실행 추적",beds:"가용 병상",nob:"가용 병상 없음",km:"km",open:"영업 종료",hoursUnk:"영업시간 정보 없음",call:"전화",c119:"119 전화",R:"위험: 생명이 위태로울 수 있습니다. 즉시 119에 전화하세요.",A:"주의: 긴급 진료가 필요합니다.",G:"경미: 약국을 먼저 이용하세요.",LIVE:"실시간",CACHED:"캐시",UNCERTAIN:"불확실",MOCK:"모의",callFirst:"먼저 전화 확인",upd:"{t} 전 업데이트",now:"방금 업데이트",min:"분",hr:"시간",from:"거리 기준: {n} (출처: {s})",you:"내 위치",src:{request:"요청",text:"텍스트",default:"기본값"},defWarn:"위치가 없어 충주시청 기준으로 계산했습니다. 장소를 고르거나 내 위치를 사용하세요.",otc:"응급용품",st:"요청 분석 중...",tagMock:"모의 데이터",tagLive:"실시간 데이터",ttft:"첫 이벤트",tot:"총 시간",eNet:"서버에 연결할 수 없습니다. 연결을 확인하세요. 응급 시 119에 전화하세요.",eHttp:"서버가 요청을 거부했습니다 ({c}).",eCut:"답변이 끝나기 전에 연결이 끊겼습니다. 응급 시 119에 전화하세요.",note:"프로토타입입니다. 의료 조언이 아닙니다. 응급 시 119에 전화하세요.",chips:["손에 심한 화상, 충주역 근처, 새벽 2시","깊은 상처, 출혈, 연수동, 밤 11시","열과 두통, 시청 근처, 새벽 3시","가슴 통증, 호흡 곤란, 충주역 근처"],
+N:{ER_UNAVAILABLE:"지금은 응급실 정보를 가져올 수 없습니다. 응급실이 필요하면 119에 전화하세요.",PHARMACY_UNAVAILABLE:"지금은 약국 정보를 가져올 수 없습니다.",OTC_UNAVAILABLE:"지금은 응급용품 추천을 제공할 수 없습니다.",NO_FREE_ER_BEDS:"근처에 병상이 있는 응급실을 찾지 못했습니다. 119에 전화해 안내를 받으세요.",NO_OPEN_PHARMACY:"지금 근처에 영업 중인 약국이 없습니다.",DATA_UNCERTAIN:"일부 정보가 3시간 이상 지나 정확하지 않을 수 있습니다. 미리 전화로 확인하세요.",LOCATION_DEFAULT:"위치가 없어 충주시청 기준으로 거리를 계산했습니다.",FALLBACK_CACHE:"실시간 정보를 가져올 수 없어 마지막으로 저장된 정보를 보여 줍니다. 미리 전화로 확인하세요.",NO_DATA:"저장된 시설 정보도 없습니다."}}};
+// Demo places: the same points the backend knows (backend/app/services/location_service.py)
+var PLACES=[{id:"st",la:36.972,lo:127.900,n:{en:"Chungju Station",ru:"Вокзал Чхунджу",zh:"忠州站",ko:"충주역"}},{id:"ys",la:36.957,lo:127.938,n:{en:"Yeonsu-dong",ru:"Ёнсу-дон",zh:"莲水洞",ko:"연수동"}},{id:"ch",la:36.991,lo:127.926,n:{en:"Chungju City Hall",ru:"Мэрия Чхунджу",zh:"忠州市政府",ko:"충주시청"}}];
+var cur="en",busy=false,geo=null,$=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fmt(s,o){return s.replace(/\{(\w+)\}/g,function(_,k){return o[k]})}
+function age(iso){var t=L[cur],m=Math.max(0,Math.round((Date.now()-Date.parse(iso))/60000));if(isNaN(m))return"";if(m<1)return t.now;
+var s=m<60?m+" "+t.min:Math.floor(m/60)+" "+t.hr+" "+(m%60)+" "+t.min;return fmt(t.upd,{t:s})}
+function badges(f){var t=L[cur],b='<span class="tag '+({LIVE:"live",CACHED:"cached",UNCERTAIN:"unc"}[f.status]||"mu")+'">'+esc(t[f.status]||f.status)+(f.status==="UNCERTAIN"?": "+t.callFirst:"")+'</span>';
+if(f.source==="MOCK")b+='<span class="tag mu">'+t.MOCK+'</span>';return b}
+function dist(f){return f.distance_km==null?"":f.distance_km.toFixed(1)+" "+L[cur].km}
+function phone(tel){return tel?'<br><a class="call" href="tel:'+esc(tel)+'">'+L[cur].call+" "+esc(tel)+'</a>':""}
 function setLang(l){cur=l;var t=L[l];document.documentElement.lang=l;
-$("t_sub").textContent=t.sub;$("t_prob").textContent=t.prob;$("q").placeholder=t.ph;$("t_hint").textContent=t.hint;$("run").textContent=t.run;$("t_sim").textContent=t.sim;$("t_h").textContent=t.h;$("t_p").textContent=t.p;$("t_a").textContent=t.a;$("t_tl").textContent=t.tl;$("t_note").textContent=t.note;
-$("ls").value=l;
-$("chips").innerHTML=t.chips.map(function(c,i){return '<button data-i="'+i+'">'+c+'</button>'}).join("");
+["sub","prob","hint","place","h","p","n","a","tl","note"].forEach(function(k){$("t_"+k).textContent=t[k]});
+$("q").placeholder=t.ph;$("run").textContent=t.run;$("geo").textContent=t.geo;$("ls").value=l;
+var sel=$("place").value;$("place").innerHTML='<option value="">'+esc(t.placeNone)+'</option>'+PLACES.map(function(p){return '<option value="'+p.id+'">'+esc(p.n[l])+'</option>'}).join("");$("place").value=geo?"":sel;
+$("chips").innerHTML=t.chips.map(function(c,i){return '<button data-i="'+i+'">'+esc(c)+'</button>'}).join("");
 $("chips").onclick=function(e){if(e.target.dataset.i)$("q").value=t.chips[e.target.dataset.i]};
-
-$("hosp").innerHTML="";$("pharm").innerHTML="";$("adv").textContent="";$("tl").textContent="";$("met").innerHTML="";$("sev").style.display="none"}
+if(geo)$("locst").textContent=t.locOk;
+clearOut()}
+function clearOut(){["hosp","pharm","nts","met"].forEach(function(i){$(i).innerHTML=""});$("adv").textContent="";$("tl").textContent="";
+["sev","from","err"].forEach(function(i){$(i).style.display="none"});$("srcTag").style.display="none"}
 $("lang").innerHTML='<select id="ls" aria-label="Language"><option value="en">English</option><option value="ru">Русский</option><option value="zh">中文</option><option value="ko">한국어</option></select>';
 $("ls").onchange=function(){setLang(this.value)};
-function classify(q){if(KW.crit.test(q))return"crit";if(KW.burn.test(q))return"burn";if(KW.cut.test(q))return"cut";if(KW.fever.test(q))return"fever";return"other"}
-function wf(p,ms){return Promise.race([p,new Promise(function(_,rj){setTimeout(function(){rj(new Error("timeout"))},ms)})])}
-async function fetchLive(data,ms){await sl(ms);return data}
-async function run(){if(busy)return;busy=true;var t=L[cur],t0=performance.now(),log=[],el=function(){return Math.round(performance.now()-t0)};
-function lg(s){log.push("+"+String(el()).padStart(5)+" ms  "+s);$("tl").textContent=log.join("\n")}
-$("hosp").innerHTML="";$("pharm").innerHTML="";$("adv").textContent=t.st;$("met").innerHTML="";
-var ttft=el();lg("SSE event: status ("+t.st+")");
-var q=$("q").value||t.ph,cat=classify(q),sev=cat==="crit"?"R":(cat==="burn"||cat==="cut")?"A":"G";
-var lc=findLoc(q);await sl(120);lg("supervisor: category="+cat+", severity="+sev+", location="+lc.n[cur]);
-var s=$("sev");s.className={R:"red",A:"amber",G:"green"}[sev];s.textContent=t[sev];s.style.display="block";
-var sim=$("sim").checked;
-lg("asyncio.gather: ER worker || pharmacy worker (timeout 2000 ms)");
-var jit=function(a,b){return a+Math.random()*(b-a)};
-var erP=wf(fetchLive(HOSP,sim?3200:jit(500,1100)),2000).then(function(d){lg("ER worker OK (LIVE)");return{d:d,src:"live"}}).catch(async function(){lg("ER worker TIMEOUT -> circuit breaker OPEN");var b=el();await sl(150);lg("fallback served from SQLite cache in "+(el()-b)+" ms");return{d:HOSP.map(function(h){return Object.assign({},h,{beds:null})}),src:"cached"}});
-var phP=wf(fetchLive(PH,jit(400,900)),2000).then(function(d){lg("pharmacy worker OK (LIVE)");return{d:d,src:"live"}}).catch(function(){return{d:PH,src:"cached"}});
-var res=await Promise.all([erP,phP]),er=res[0],ph=res[1];
-var hs=er.d.map(function(h){return Object.assign({},h,{dist:km(lc.la,lc.lo,h.la,h.lo)})}).filter(function(h){return er.src==="cached"||h.beds>0||true}).sort(function(a,b){return (a.beds===0)-(b.beds===0)||a.dist-b.dist});
-$("hosp").innerHTML=hs.map(function(h,i){var tag=er.src==="cached"?'<span class="tag cached">'+t.cached+'</span>':h.age>180?'<span class="tag unc">'+t.unc+'</span>':'<span class="tag live">'+t.live+'</span>';
-var bd=er.src==="cached"?"":(h.beds>0?" &bull; <b style='display:inline;color:var(--em)'>"+h.beds+" "+t.beds+"</b>":" &bull; <b style='display:inline;color:var(--rd)'>"+t.nob+"</b>");
-return '<div class="item'+(i===0?" best":"")+'"><b>'+h.n[cur]+'</b>'+tag+h.dist.toFixed(1)+" "+t.km+bd+'<br><a class="call" href="tel:'+h.tel+'">'+t.call+" "+h.tel+'</a></div>'}).join("");
-var ps=ph.d.map(function(p){return Object.assign({},p,{dist:km(lc.la,lc.lo,p.la,p.lo)})}).sort(function(a,b){return a.dist-b.dist});
-var otc=t.otc[cat];
-$("pharm").innerHTML=ps.map(function(p,i){return '<div class="item'+(i===0?" best":"")+'"><b>'+p.n[cur]+'</b><span class="tag live">'+t.live+'</span>'+p.dist.toFixed(1)+" "+t.km+" &bull; "+t.open+" "+p.until+(i===0&&otc?"<br>"+otc:"")+'<br><a class="call" href="tel:'+p.tel+'">'+t.call+" "+p.tel+'</a></div>'}).join("");
-if(sev==="R"||er.src==="cached")$("hosp").insertAdjacentHTML("afterbegin",'<a class="call r" href="tel:119" style="margin-bottom:8px">'+t.c119+'</a>');
-lg("cards rendered");
-var txt=t.adv[cat],out="";$("adv").textContent="";
-for(var i=0;i<txt.length;i++){out+=txt[i];$("adv").textContent=out;if(i%3===0)await sl(12)}
-var tot=el();lg("SSE event: done");
-$("met").innerHTML="<span>"+t.ttft+": "+ttft+" ms "+(ttft<=1500?"OK":"!")+"</span><span>"+t.tot+": "+tot+" ms "+(tot<=6000?"OK":"!")+"</span><span>workers: parallel</span><span>source: "+(er.src==="live"?"LIVE":"CACHED")+"</span>";
-busy=false}
+$("place").onchange=function(){if(this.value){geo=null;$("locst").textContent=""}};
+$("geo").onclick=function(){var t=L[cur];if(!navigator.geolocation){$("locst").textContent=t.locErr+"geolocation";return}
+$("locst").textContent=t.locating;navigator.geolocation.getCurrentPosition(function(pos){geo={lat:pos.coords.latitude,lon:pos.coords.longitude};$("place").value="";$("locst").textContent=L[cur].locOk},function(e){geo=null;$("locst").textContent=L[cur].locErr+e.message},{enableHighAccuracy:true,timeout:10000,maximumAge:60000})};
+function body(){var b={query:$("q").value.trim()||L[cur].ph,language:cur},pl=PLACES.filter(function(p){return p.id===$("place").value})[0];
+if(geo){b.lat=geo.lat;b.lon=geo.lon}else if(pl){b.lat=pl.la;b.lon=pl.lo}return b}
+// POST + ReadableStream: EventSource only does GET. One SSE message per blank line.
+async function stream(b,on){var resp=await fetch(STREAM_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});
+if(!resp.ok){var e=new Error("http");e.status=resp.status;throw e}
+var rd=resp.body.pipeThrough(new TextDecoderStream()).getReader(),buf="";
+for(;;){var r=await rd.read();if(r.done)break;buf+=r.value.replace(/\r\n/g,"\n");var i;
+while((i=buf.indexOf("\n\n"))>=0){var m=buf.slice(0,i);buf=buf.slice(i+2);var n=(m.match(/^event: ?(.*)$/m)||[])[1],d=(m.match(/^data: ?(.*)$/m)||[])[1];if(n&&d)on(n,JSON.parse(d))}}}
+async function run(){if(busy)return;busy=true;$("run").disabled=true;clearOut();
+var t=L[cur],t0=performance.now(),log=[],ev={},b=body(),sources={};
+function lg(s){log.push("+"+String(Math.round(performance.now()-t0)).padStart(5)+" ms  "+s);$("tl").textContent=log.join("\n")}
+function tag(list){list.forEach(function(f){sources[f.source]=1});var s=$("srcTag");s.style.display="inline-block";s.className="mock"+(sources.MOCK?"":" lv");s.textContent=sources.MOCK?t.tagMock:t.tagLive}
+$("adv").textContent=t.st;lg("POST "+STREAM_URL+(b.lat!=null?" (lat/lon)":""));
+var on={
+triage:function(d){var s=$("sev"),k={red:"R",amber:"A",green:"G"}[d.severity];s.className=d.severity;s.style.display="block";
+s.innerHTML=d.prompt_119?'<span class="p119">'+esc(d.prompt_119)+'</span><a class="c119" href="tel:119">'+t.c119+'</a>':esc(t[k]);
+var pl=PLACES.filter(function(p){return p.id===$("place").value})[0],nm=d.location.name==="user"?(geo||!pl?t.you:pl.n[cur]):d.location.name;
+var f=$("from");f.style.display="block";f.className=d.location.source==="default"?"warn":"";f.textContent=fmt(t.from,{n:nm,s:t.src[d.location.source]||d.location.source})+(d.location.source==="default"?" "+t.defWarn:"");
+lg("triage: "+d.severity+" / "+d.category+" / "+d.language+(d.call_119?" / CALL 119":""))},
+er:function(d){tag(d.facilities);var best=d.facilities.findIndex(function(e){return e.hvec>0});
+$("hosp").innerHTML=d.facilities.map(function(e,i){var bd=e.hvec>0?"<b style='display:inline;color:var(--em)'>"+e.hvec+" "+t.beds+"</b>":"<b style='display:inline;color:var(--rd)'>"+t.nob+"</b>";
+return '<div class="item'+(i===best?" best":"")+'"><b>'+esc(e.name)+'</b>'+badges(e)+dist(e)+" &bull; "+bd+'<br><span>'+esc(age(e.fetched_at))+'</span>'+phone(e.tel)+'</div>'}).join("");
+lg("er: "+d.facilities.length+" facilities")},
+pharmacy:function(d){tag(d.facilities);
+$("pharm").innerHTML=d.facilities.map(function(p,i){var hrs=p.is_open&&p.open_until?t.open+" "+esc(p.open_until):t.hoursUnk;
+return '<div class="item'+(i===0?" best":"")+'"><b>'+esc(p.name)+'</b>'+badges(p)+dist(p)+" &bull; "+hrs+'<br><span>'+esc(age(p.fetched_at))+'</span>'+(i===0&&d.otc.length?"<br>"+esc(t.otc)+": "+esc(d.otc.join(", ")):"")+phone(p.tel)+'</div>'}).join("");
+lg("pharmacy: "+d.facilities.length+" facilities"+(d.at_time?" open at "+d.at_time:""))},
+notice:function(d){$("nts").insertAdjacentHTML("beforeend",'<div class="nt">'+esc(t.N[d.notice]||d.notice)+'</div>');lg("notice: "+d.notice)},
+advice:function(d){$("adv").textContent=d.advice;lg("advice ("+d.language+")")},
+done:function(d){lg("done: total "+d.total_ms+" ms"+(d.timed_out?" (cut off at 6 s)":""));
+var st=Object.keys(d.stages).map(function(k){return k+" "+d.stages[k]+" ms"}).join(" · ");
+$("met").innerHTML="<span>"+t.ttft+": "+(d.stages.triage!=null?d.stages.triage+" ms":"?")+" RT-101 "+(d.rt101_ok?"OK":"FAIL")+"</span><span>"+t.tot+": "+d.total_ms+" ms RT-105 "+(d.rt105_ok?"OK":"FAIL")+"</span><span>"+esc(st)+"</span>"}};
+try{await stream(b,function(n,d){ev[n]=d;if(on[n])on[n](d)});
+if(!ev.done)throw new Error("cut")}
+catch(e){var er=$("err");er.style.display="block";er.textContent=e.status?fmt(t.eHttp,{c:e.status}):ev.triage?t.eCut:t.eNet;if(!ev.advice)$("adv").textContent="";lg("error: "+(e.status||e.message))}
+finally{busy=false;$("run").disabled=false}}
 $("run").onclick=run;setLang("en");
 </script></body></html>
