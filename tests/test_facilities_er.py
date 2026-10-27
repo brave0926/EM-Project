@@ -52,11 +52,11 @@ async def test_provider_failure_is_502(api):
 
 
 @pytest.mark.asyncio
-async def test_live_provider_is_502(api):
-    async with api(server=build_server(LiveProvider())) as client:
+async def test_live_provider_without_key_is_502(api):
+    async with api(server=build_server(LiveProvider(er_key="", pharmacy_key=""))) as client:
         resp = await client.get("/facilities/er")
     assert resp.status_code == 502
-    assert "NOT_IMPLEMENTED" in resp.json()["detail"]
+    assert "NO_KEY" in resp.json()["detail"]
 
 
 @pytest.mark.asyncio

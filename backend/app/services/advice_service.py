@@ -126,8 +126,9 @@ def build_advice(
     if free:
         lines.append(t["er"].format(name=free[0].name, km=_km(free[0].distance_km), tel=free[0].tel))
     if triage.severity is not Severity.RED:  # critical: the 119 call comes first, no pharmacy
-        if pharmacies:
-            p = pharmacies[0]
+        known_open = [p for p in pharmacies if p.is_open and p.open_until]
+        if known_open:
+            p = known_open[0]
             lines.append(t["ph"].format(name=p.name, km=_km(p.distance_km), until=p.open_until, tel=p.tel))
         if otc:
             lines.append(t["otc"].format(items=", ".join(otc)))

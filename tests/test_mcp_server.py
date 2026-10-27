@@ -36,8 +36,8 @@ async def test_provider_error_becomes_tool_error():
 
 
 @pytest.mark.asyncio
-async def test_live_provider_becomes_not_implemented():
-    async with Client(build_server(LiveProvider())) as client:
+async def test_live_provider_without_key_becomes_provider_error():
+    async with Client(build_server(LiveProvider(er_key="", pharmacy_key=""))) as client:
         result = await client.call_tool("get_er_beds", {"region": "Chungju"})
     assert result.is_error
-    assert "NOT_IMPLEMENTED" in result.content[0].text
+    assert "PROVIDER_ERROR: NO_KEY" in result.content[0].text

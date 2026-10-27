@@ -39,10 +39,12 @@ class _FacilityBase(BaseModel):
 
 class ERFacility(_FacilityBase):
     hvec: int = Field(ge=0)  # free ER beds (NMC field name)
+    hvicc: int | None = None  # free general ICU beds; None = unknown
 
 
 class PharmacyFacility(_FacilityBase):
-    open_until: str = Field(pattern=HHMM_PATTERN)  # "HH:MM", local time
+    open_until: str | None = Field(default=None, pattern=HHMM_PATTERN)  # "HH:MM" local; None = unknown
+    is_open: bool | None = True  # at the requested time; None = unknown (no hours in the source)
 
 
 class OtcAdvice(BaseModel):

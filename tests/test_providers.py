@@ -82,11 +82,10 @@ def test_factory_default_is_mock(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_live_provider_not_implemented():
-    live = LiveProvider()
-    with pytest.raises(NotImplementedError, match="data.go.kr key not available"):
+async def test_live_provider_without_key_raises_provider_error():
+    live = LiveProvider(er_key="", pharmacy_key="")
+    with pytest.raises(ProviderError, match="NO_KEY"):
         await live.get_er_beds("Chungju")
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(ProviderError, match="NO_KEY"):
         await live.get_pharmacies(CHUNGJU)
-    with pytest.raises(NotImplementedError):
-        await live.get_otc(Category.BURN)
+    assert await live.get_otc(Category.CUT)  # static lists, no upstream call

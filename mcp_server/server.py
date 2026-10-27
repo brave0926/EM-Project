@@ -1,6 +1,7 @@
 """em-mcp-server: exposes the data provider as MCP tools over streamable HTTP.
 
 Run: python -m mcp_server.server   (EM_MCP_HOST / EM_MCP_PORT, default 127.0.0.1:8001)
+Reads .env at start; EM_PROVIDER=mock (default) or live.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from typing import TypeVar
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
+from backend.app.core.env import load_env
 from backend.app.models.domain import ERFacility, Location, PharmacyFacility
 from backend.app.models.enums import Category
 from mcp_server.providers import DataProvider, ProviderError, get_provider
@@ -33,7 +35,7 @@ async def _guard(call: Awaitable[T]) -> T:
 
 def build_server(provider: DataProvider | None = None) -> MCPServer:
     provider = provider or get_provider()
-    server = MCPServer(SERVER_NAME, instructions="Emergency facility data. Mock data is labelled MOCK.")
+    server = MCPServer(SERVER_NAME, instructions="Emergency facility data, labelled MOCK or LIVE.")
 
     @server.tool(description="ERs in a region with free beds (hvec); nearest first when lat/lon given.")
     async def get_er_beds(
@@ -55,6 +57,7 @@ def build_server(provider: DataProvider | None = None) -> MCPServer:
 
 
 def main() -> None:
+    load_env()  # .env: EM_PROVIDER and the data.go.kr keys; the shell environment wins
     host = os.environ.get("EM_MCP_HOST", "127.0.0.1")
     port = int(os.environ.get("EM_MCP_PORT", "8001"))
     build_server().run("streamable-http", host=host, port=port)
