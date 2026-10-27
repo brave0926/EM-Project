@@ -15,7 +15,8 @@ import asyncio
 import logging
 import operator
 import time
-from typing import Annotated, TypedDict
+from collections.abc import AsyncIterator
+from typing import Annotated, Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
@@ -146,6 +147,24 @@ def build_graph():
 _graph = build_graph()
 
 
+def _input(
+    query: str, language: Language | None, lat: float | None, lon: float | None, at_time: str | None
+) -> TriageState:
+    return {"query": query, "language": language, "lat": lat, "lon": lon, "at_time": at_time, "notices": []}
+
+
+def stream_updates(
+    query: str,
+    language: Language | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    at_time: str | None = None,
+) -> AsyncIterator[dict[str, Any]]:
+    """Node updates as each node finishes ({node: update}); the parallel workers in either order.
+    Closing the iterator cancels the nodes still running."""
+    return _graph.astream(_input(query, language, lat, lon, at_time), stream_mode="updates")
+
+
 async def run_triage(
     query: str,
     language: Language | None = None,
@@ -154,9 +173,7 @@ async def run_triage(
     at_time: str | None = None,
 ) -> TriageOutcome:
     t0 = time.perf_counter()
-    state = await _graph.ainvoke(
-        {"query": query, "language": language, "lat": lat, "lon": lon, "at_time": at_time, "notices": []}
-    )
+    state = await _graph.ainvoke(_input(query, language, lat, lon, at_time))
     triage = state["triage"]
     return TriageOutcome(
         language=state["language"],

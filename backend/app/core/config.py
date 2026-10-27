@@ -10,10 +10,12 @@ from pydantic import BaseModel, Field
 from backend.app.core.env import ROOT
 
 STALE_AFTER_MIN = 180  # RT-104: data older than this is UNCERTAIN
+TTFT_S = 1.5  # RT-101: first streamed event
 TOOL_TIMEOUT_S = 2.0  # RT-102: one MCP tool call
 FALLBACK_BUDGET_S = 0.2  # RT-103: serving the last good data after a failure
 BREAKER_FAILURES = 3  # consecutive failures that open a tool's circuit
 BREAKER_OPEN_S = 30.0  # how long an open circuit skips upstream calls
+END_TO_END_S = 6.0  # RT-105: whole triage (the stream is cut off here)
 LLM_TIMEOUT_S = 1.0  # advice rewrite budget; the template is used if the LLM is slower
 DEFAULT_REGION = "Chungju"
 KST = timezone(timedelta(hours=9))  # local time for opening hours (no DST in Korea)

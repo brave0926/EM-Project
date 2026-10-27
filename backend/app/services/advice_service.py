@@ -116,6 +116,11 @@ def data_notices(er: list[ERFacility], pharmacies: list[PharmacyFacility]) -> li
     return []
 
 
+def prompt_119(language: Language) -> str:
+    """The critical-case 119 line in the user's language."""
+    return _T[language]["red"]
+
+
 def _km(distance_km: float | None) -> str:
     return "?" if distance_km is None else f"{distance_km:.1f}"
 

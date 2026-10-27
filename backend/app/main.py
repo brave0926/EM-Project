@@ -15,6 +15,7 @@ from backend.app.controllers import (
     health_controller,
     otc_controller,
     triage_controller,
+    triage_stream_controller,
 )
 from backend.app.core.config import settings
 
@@ -36,6 +37,7 @@ app = FastAPI(title=settings.title, description=settings.description, version=se
 app.add_exception_handler(McpClientError, mcp_error_handler)
 app.include_router(health_controller.router, tags=["Health"])
 app.include_router(triage_controller.router, tags=["Triage"])
+app.include_router(triage_stream_controller.router, tags=["Triage"])
 app.include_router(facilities_er_controller.router, tags=["Facilities"])
 app.include_router(facilities_pharmacy_controller.router, tags=["Facilities"])
 app.include_router(otc_controller.router, tags=["OTC"])
