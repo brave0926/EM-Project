@@ -12,5 +12,5 @@ router = APIRouter()
 
 @router.get("/facilities/er", response_model=ERFacilitiesResponse)
 async def list_ers(query: Annotated[ERFacilitiesQuery, Query()]) -> ERFacilitiesResponse:
-    ers = await er_facility_service.find_ers(query.region, query.lat, query.lon, query.available_only)
-    return ERFacilitiesResponse(facilities=ers)
+    ers, notices = await er_facility_service.find_ers(query.region, query.lat, query.lon, query.available_only)
+    return ERFacilitiesResponse(facilities=ers, notices=notices)

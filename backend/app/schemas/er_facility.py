@@ -5,7 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field, computed_field, model_validator
 
 from backend.app.models.domain import ERFacility
-from backend.app.models.enums import DataStatus
+from backend.app.models.enums import DataStatus, Notice
 
 
 class ERFacilitiesQuery(BaseModel):
@@ -24,6 +24,9 @@ class ERFacilitiesQuery(BaseModel):
 class ERFacilitiesResponse(BaseModel):
     facilities: list[ERFacility] = Field(
         description="ERs with free beds first, then nearest first when lat/lon given."
+    )
+    notices: list[Notice] = Field(
+        default_factory=list, description="FALLBACK_CACHE: live lookup failed, last saved data shown."
     )
 
     @computed_field(description="Number of facilities returned.")

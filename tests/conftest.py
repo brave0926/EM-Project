@@ -1,12 +1,26 @@
 import asyncio
 
 import httpx
+import pytest
 import pytest_asyncio
 
+from backend.app.clients.fallback_store import FallbackStore, set_fallback_store
 from backend.app.clients.mcp_client import McpClient, set_mcp_client
 from backend.app.main import app
 from mcp_server.providers import MockProvider
+from backend.app.services import fallback_service
 from mcp_server.server import build_server
+
+
+@pytest.fixture(autouse=True)
+def fresh_fallback(tmp_path):
+    """Every test: an empty fallback store in a temp file and CLOSED breakers."""
+    store = FallbackStore(tmp_path / "fallback.db")
+    set_fallback_store(store)
+    fallback_service.reset_breakers()
+    yield store
+    set_fallback_store(None)
+    fallback_service.reset_breakers()
 
 
 @pytest_asyncio.fixture

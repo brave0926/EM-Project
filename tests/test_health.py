@@ -8,7 +8,8 @@ client = TestClient(app)
 def test_health_ok():
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.json() == {"status": "ok", "version": "0.1.0"}
+    closed = {"state": "CLOSED", "failures": 0, "last_error": None}
+    assert resp.json() == {"status": "ok", "version": "0.1.0", "breakers": {"er": closed, "pharmacy": closed}}
 
 
 def test_openapi_metadata():

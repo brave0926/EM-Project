@@ -33,6 +33,8 @@ _T: dict[Language, dict[str, str]] = {
         Notice.OTC_UNAVAILABLE: "First-aid item suggestions are unavailable right now.",
         Notice.DATA_UNCERTAIN: "Some facility data is over 3 hours old and may be wrong. Call ahead.",
         Notice.LOCATION_DEFAULT: "Location not given: distances are from Chungju City Hall.",
+        Notice.FALLBACK_CACHE: "Live facility data is unavailable: showing the last saved data. Call ahead to confirm.",
+        Notice.NO_DATA: "No saved facility data is available either.",
         "disclaimer": "Not medical advice. In an emergency call 119.",
     },
     Language.RU: {
@@ -54,6 +56,8 @@ _T: dict[Language, dict[str, str]] = {
         Notice.OTC_UNAVAILABLE: "Рекомендации по средствам первой помощи сейчас недоступны.",
         Notice.DATA_UNCERTAIN: "Часть данных старше 3 часов и может быть неточной. Позвоните заранее.",
         Notice.LOCATION_DEFAULT: "Местоположение не указано: расстояния считаются от мэрии Чхунджу.",
+        Notice.FALLBACK_CACHE: "Актуальные данные недоступны: показаны последние сохранённые. Позвоните заранее.",
+        Notice.NO_DATA: "Сохранённых данных об учреждениях тоже нет.",
         "disclaimer": "Это не медицинская консультация. В экстренной ситуации звоните 119.",
     },
     Language.ZH: {
@@ -75,6 +79,8 @@ _T: dict[Language, dict[str, str]] = {
         Notice.OTC_UNAVAILABLE: "目前无法提供急救用品建议。",
         Notice.DATA_UNCERTAIN: "部分数据已超过3小时，可能不准确。请先打电话确认。",
         Notice.LOCATION_DEFAULT: "未提供位置：距离以忠州市政府为起点计算。",
+        Notice.FALLBACK_CACHE: "目前无法获取实时数据：显示的是最近保存的数据。请先打电话确认。",
+        Notice.NO_DATA: "也没有已保存的机构数据。",
         "disclaimer": "这不是医疗建议。紧急情况请拨打119。",
     },
     Language.KO: {
@@ -96,6 +102,8 @@ _T: dict[Language, dict[str, str]] = {
         Notice.OTC_UNAVAILABLE: "지금은 응급용품 추천을 제공할 수 없습니다.",
         Notice.DATA_UNCERTAIN: "일부 정보가 3시간 이상 지나 정확하지 않을 수 있습니다. 미리 전화로 확인하세요.",
         Notice.LOCATION_DEFAULT: "위치가 없어 충주시청 기준으로 거리를 계산했습니다.",
+        Notice.FALLBACK_CACHE: "실시간 정보를 가져올 수 없어 마지막으로 저장된 정보를 보여 줍니다. 미리 전화로 확인하세요.",
+        Notice.NO_DATA: "저장된 시설 정보도 없습니다.",
         "disclaimer": "의료 조언이 아닙니다. 응급 상황에서는 119에 전화하세요.",
     },
 }

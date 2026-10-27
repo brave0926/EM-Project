@@ -4,8 +4,9 @@
                      +- other: er_worker || pharmacy_worker ---+
 
 triage classifies the query with rules (no network, fast first answer). The workers run in
-parallel and reach data only through services -> MCP client. A failing worker adds a notice
-instead of failing the request: severity, advice and the 119 prompt always come back.
+parallel and reach data only through services -> MCP client. A failed lookup is answered from
+the last saved data (FALLBACK_CACHE) or, with nothing saved, adds UNAVAILABLE + NO_DATA instead
+of failing the request: severity, advice and the 119 prompt always come back.
 """
 
 from __future__ import annotations
@@ -83,12 +84,14 @@ def route(state: TriageState) -> list[str]:
 async def er_worker(state: TriageState) -> TriageState:
     loc = state["location"]
     try:
-        ers = await er_facility_service.find_ers(DEFAULT_REGION, loc.lat, loc.lon)
+        ers, notices = await er_facility_service.find_ers(DEFAULT_REGION, loc.lat, loc.lon)
     except Exception:
         log.warning("er_worker failed", exc_info=True)
-        return {"er": [], "notices": [Notice.ER_UNAVAILABLE]}
+        return {"er": [], "notices": [Notice.ER_UNAVAILABLE, Notice.NO_DATA]}
     ers = ers[:TOP_N]  # free beds first, then nearest
-    return {"er": ers, "notices": [] if any(e.hvec > 0 for e in ers) else [Notice.NO_FREE_ER_BEDS]}
+    if not any(e.hvec > 0 for e in ers):
+        notices.append(Notice.NO_FREE_ER_BEDS)
+    return {"er": ers, "notices": notices}
 
 
 async def pharmacy_worker(state: TriageState) -> TriageState:
@@ -101,10 +104,11 @@ async def pharmacy_worker(state: TriageState) -> TriageState:
     update: TriageState = {"pharmacies": [], "otc": [], "notices": []}
     if isinstance(pharmacies, BaseException):  # gather may also return CancelledError
         log.warning("pharmacy lookup failed", exc_info=pharmacies)
-        update["notices"].append(Notice.PHARMACY_UNAVAILABLE)
+        update["notices"] += [Notice.PHARMACY_UNAVAILABLE, Notice.NO_DATA]
     else:
-        update["at_time"], found = pharmacies
+        update["at_time"], found, notices = pharmacies
         update["pharmacies"] = found[:TOP_N]
+        update["notices"] += notices
         if not found:
             update["notices"].append(Notice.NO_OPEN_PHARMACY)
     if isinstance(otc, BaseException):

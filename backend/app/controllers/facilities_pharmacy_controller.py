@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/facilities/ph", response_model=PharmacyFacilitiesResponse)
 async def list_pharmacies(query: Annotated[PharmacyFacilitiesQuery, Query()]) -> PharmacyFacilitiesResponse:
-    at_time, pharmacies = await pharmacy_facility_service.find_open_pharmacies(
+    at_time, pharmacies, notices = await pharmacy_facility_service.find_open_pharmacies(
         query.lat, query.lon, query.at_time
     )
-    return PharmacyFacilitiesResponse(at_time=at_time, facilities=pharmacies)
+    return PharmacyFacilitiesResponse(at_time=at_time, facilities=pharmacies, notices=notices)

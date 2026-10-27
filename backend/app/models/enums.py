@@ -42,3 +42,5 @@ class Notice(StrEnum):
     NO_OPEN_PHARMACY = "NO_OPEN_PHARMACY"
     DATA_UNCERTAIN = "DATA_UNCERTAIN"
     LOCATION_DEFAULT = "LOCATION_DEFAULT"
+    FALLBACK_CACHE = "FALLBACK_CACHE"  # live lookup failed: last saved data shown
+    NO_DATA = "NO_DATA"  # live lookup failed and nothing is saved
