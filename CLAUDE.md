@@ -17,7 +17,7 @@ backend/app/
   controllers/  FastAPI routers      -> schemas, services, graph, models (enums for params), core
   graph/        LangGraph supervisor -> services, models, core
   services/     pure business logic  -> clients, models, core
-  clients/      MCP client (network) -> models, core   (calls em-mcp-server over MCP)
+  clients/      MCP client, fallback store (I/O) -> models, core   (em-mcp-server over MCP; SQLite)
   schemas/      API DTOs             -> models
   models/       domain enums/entities-> core
   core/         config               -> (nothing in app)
