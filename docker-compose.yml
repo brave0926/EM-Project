@@ -1,0 +1,35 @@
+# docker compose up --build   -> page at http://127.0.0.1:${API_PORT:-8000}/
+# EM_PROVIDER and the data.go.kr keys come from .env (optional; mock without it).
+services:
+  mcp:
+    build: .
+    command: ["python", "-m", "mcp_server.server"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      EM_MCP_HOST: 0.0.0.0  # reachable from the api container; not published to the host
+      EM_MCP_PORT: "8001"
+    restart: unless-stopped
+
+  api:
+    build: .
+    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      EM_MCP_URL: http://mcp:8001/mcp
+      EM_FALLBACK_DB: /data/em_fallback.db
+    volumes:
+      - fallback-db:/data  # last good facility data survives restarts
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      - mcp
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  fallback-db:

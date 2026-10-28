@@ -34,6 +34,19 @@ Then open http://127.0.0.1:8000/ (Swagger at `/docs`). The page streams `POST /a
 - The last good facility data is kept in `em_fallback.db` (gitignored; `EM_FALLBACK_DB` to move it),
   so the page still answers when the data source is down (`docs/resilience.md`).
 
+## Run with Docker
+
+```bash
+docker compose up --build             # first time, or after code changes
+docker compose up                     # later runs; Ctrl+C stops (docker compose down removes the containers)
+API_PORT=8020 docker compose up       # if port 8000 is taken
+```
+
+Then open http://127.0.0.1:8000/. Two containers run from one image: `mcp` (em-mcp-server, internal
+only) and `api` (FastAPI, published on `API_PORT`). `EM_PROVIDER` and the data.go.kr keys come from
+`.env` if it exists, otherwise mock data is used. The fallback SQLite file lives in the `fallback-db`
+volume (`docker compose down -v` deletes it).
+
 ## Run tests
 
 ```bash
