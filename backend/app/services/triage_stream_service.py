@@ -3,7 +3,10 @@
 The controller passes in the graph's node updates (graph/triage_graph.stream_updates); this
 service turns them into events, in the order the nodes finish:
 
-    triage (rules only, first) -> notice* -> er / pharmacy (either order) -> notice* -> advice -> done
+    triage (rules only, first) -> [context] -> notice* -> er / pharmacy (either order) -> notice* -> advice -> done
+
+context comes only when the LLM filled a missing place or time (EM_LLM=anthropic). done carries
+the LLM timings and outcome.
 
 The whole stream is capped at RT-105: when the cap hits, the graph is closed (its running
 workers are cancelled), missing workers get an UNAVAILABLE notice, the advice comes from the
@@ -24,6 +27,7 @@ from backend.app.models.domain import TriageResult
 from backend.app.models.enums import Language, Notice, Severity
 from backend.app.models.stream import (
     AdviceEvent,
+    ContextEvent,
     DoneEvent,
     ErEvent,
     NoticeEvent,
@@ -87,6 +91,13 @@ def _events(run: _Run, node: str, update: dict[str, Any]) -> list[StreamEvent]:
     notices = update.get("notices", [])
     if node == "triage":
         return [_triage_event(run, update), *run.new_notices(notices)]
+    if node == "extract":
+        events: list[StreamEvent] = []
+        if "location" in update or "at_time" in update:
+            loc = run.state["location"]
+            events.append(ContextEvent(location=StreamLocation(**loc.model_dump(), source=run.state["location_source"]),
+                                       at_time=run.state.get("at_time"), t_ms=run.stamp("context")))
+        return [*events, *run.new_notices(notices)]
     if node == "er_worker":
         return [ErEvent(facilities=update.get("er", []), t_ms=run.stamp("er")), *run.new_notices(notices)]
     if node == "pharmacy_worker":
@@ -179,4 +190,5 @@ async def _stream(
         timed_out=timed_out,
         rt101_ok=run.first_ms is not None and run.first_ms <= TTFT_S * 1000,
         rt105_ok=not timed_out and total <= END_TO_END_S * 1000,
+        llm=timing.llm_stats(),
     )

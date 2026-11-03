@@ -1,17 +1,14 @@
 """Advice text from templates in EN/RU/ZH/KO. No FastAPI.
 
-build_advice() is pure. polish_advice() may ask the LLM to rewrite it, but falls back to
-the template on any error, timeout, or if the rewrite drops the 119 line. Not medical advice.
+build_advice() is pure. The LLM may only rewrite it (services/llm_service.py), with the template
+as the fallback on any error, timeout or invalid rewrite. Not medical advice.
 """
 
 from __future__ import annotations
 
-import asyncio
-
-from backend.app.clients.llm_client import get_llm_client
-from backend.app.core.config import LLM_TIMEOUT_S
 from backend.app.models.domain import ERFacility, PharmacyFacility, TriageResult
 from backend.app.models.enums import Category, DataStatus, Language, Notice, Severity
+from backend.app.services import llm_service
 
 _T: dict[Language, dict[str, str]] = {
     Language.EN: {
@@ -163,15 +160,22 @@ def build_advice(
             lines.append(t["ph_closed"])
         if otc:
             lines.append(t["otc"].format(items=", ".join(otc)))
-    lines += [_notice(t, n, at_time) for n in notices]
+    lines += [_notice(t, n, at_time) for n in notices if n is not Notice.LLM_FALLBACK]  # technical, not advice
     lines.append(t["disclaimer"])
     return "\n".join(lines)
 
 
+def required_in_rewrite(advice: str, language: Language, triage: TriageResult,
+                        facilities: list[ERFacility | PharmacyFacility]) -> list[str]:
+    """What an LLM rewrite must keep word for word: every facility name and phone in the advice,
+    and for RED the 119 line."""
+    keep = [s for f in facilities for s in (f.name, f.tel) if s and s in advice]
+    if triage.severity is Severity.RED:
+        keep.append(prompt_119(language))
+    return list(dict.fromkeys(keep))
+
+
 async def polish_advice(advice: str, language: Language) -> str:
-    """Optional LLM rewrite. Any failure, timeout or a rewrite without "119" -> template."""
-    try:
-        rewritten = await asyncio.wait_for(get_llm_client().rewrite_advice(advice, language), LLM_TIMEOUT_S)
-    except Exception:
-        return advice
-    return rewritten if rewritten and "119" in rewritten else advice
+    """Optional LLM rewrite (llm_service). Any failure, timeout or invalid rewrite -> template."""
+    text, _ = await llm_service.rewrite_advice(advice, language)
+    return text

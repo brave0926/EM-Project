@@ -21,12 +21,16 @@ class ChaosRequestSchema(BaseModel):
                 {"target": "all", "mode": "error", "duration_s": 60},
                 {"target": "er", "mode": "delay", "delay_ms": 3000, "duration_s": 60},
                 {"target": "pharmacy", "mode": "hang"},
+                {"target": "llm", "mode": "error"},
                 {"target": "all", "mode": "off"},
             ]
         }
     )
 
-    target: ChaosTarget = Field(description="er, pharmacy or all (er + pharmacy). OTC is never targeted.")
+    target: ChaosTarget = Field(
+        description="er, pharmacy, all (er + pharmacy) or llm (both LLM jobs; needs EM_LLM=anthropic). "
+        "OTC is never targeted."
+    )
     mode: ChaosMode = Field(
         description="off; delay (wait delay_ms, past 2 s it ends as TIMEOUT); error (TOOL_ERROR at once); "
         "hang (no answer until the RT-102 timeout, then TIMEOUT)."
@@ -50,4 +54,4 @@ class ChaosStateSchema(BaseModel):
 
     enabled: bool = Field(description="EM_DEMO_CHAOS=1 on the server.")
     active: bool = Field(description="Any tool has failure injection on now.")
-    tools: dict[str, ChaosToolStateSchema] = Field(description="Per tool (er, pharmacy).")
+    tools: dict[str, ChaosToolStateSchema] = Field(description="Per tool (er, pharmacy, llm).")

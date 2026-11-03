@@ -6,6 +6,7 @@ import pytest_asyncio
 
 from backend.app.clients.chaos import set_chaos_store
 from backend.app.clients.fallback_store import FallbackStore, set_fallback_store
+from backend.app.clients.llm_client import set_llm_client
 from backend.app.clients.mcp_client import McpClient, set_mcp_client
 from backend.app.main import app
 from mcp_server.providers import MockProvider
@@ -22,6 +23,16 @@ def fresh_fallback(tmp_path):
     yield store
     set_fallback_store(None)
     fallback_service.reset_breakers()
+
+
+@pytest.fixture(autouse=True)
+def no_llm(monkeypatch):
+    """Every test: no real LLM (EM_LLM and the key unset, so NoLlm); tests install fakes."""
+    for name in ("EM_LLM", "ANTHROPIC_API_KEY", "EM_LLM_MODEL"):
+        monkeypatch.delenv(name, raising=False)
+    set_llm_client(None)
+    yield
+    set_llm_client(None)
 
 
 @pytest.fixture(autouse=True)

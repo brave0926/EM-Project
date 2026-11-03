@@ -4,21 +4,28 @@ city centre. Pure: no I/O, no FastAPI. Coordinates are approximate (mock area)."
 from __future__ import annotations
 
 from backend.app.models.domain import Location, LocationSource
+from backend.app.models.llm import KnownPlace
 
 CITY_CENTRE = Location(name="Chungju City Hall (approx.)", lat=36.991, lon=127.926)
+STATION = Location(name="Chungju Station (approx.)", lat=36.972, lon=127.900)
+YEONSU = Location(name="Yeonsu-dong (approx.)", lat=36.957, lon=127.938)
 
 # (place, names to look for in EN/RU/ZH/KO, lower-case)
 _PLACES: list[tuple[Location, list[str]]] = [
-    (
-        Location(name="Chungju Station (approx.)", lat=36.972, lon=127.900),
-        ["chungju station", "вокзал чхунджу", "станция чхунджу", "忠州站", "충주역"],
-    ),
-    (
-        Location(name="Yeonsu-dong (approx.)", lat=36.957, lon=127.938),
-        ["yeonsu", "ёнсу", "연수동"],
-    ),
+    (STATION, ["chungju station", "вокзал чхунджу", "станция чхунджу", "忠州站", "충주역"]),
+    (YEONSU, ["yeonsu", "ёнсу", "연수동"]),
     (CITY_CENTRE, ["city hall", "мэрия", "忠州市政府", "충주시청", "시청"]),
 ]
+# The ids the LLM may name (models/llm.KnownPlace): it never supplies coordinates itself.
+KNOWN_PLACES: dict[KnownPlace, Location] = {
+    "chungju_station": STATION,
+    "yeonsu_dong": YEONSU,
+    "city_hall": CITY_CENTRE,
+}
+
+
+def known_place(place: KnownPlace) -> Location:
+    return KNOWN_PLACES[place]
 
 
 def resolve_location(text: str, lat: float | None = None, lon: float | None = None) -> tuple[Location, LocationSource]:

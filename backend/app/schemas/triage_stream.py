@@ -39,16 +39,18 @@ EXAMPLE = (
     'event: advice\ndata: {"event": "advice", "language": "en", "advice": "This may be life-threatening. '
     'Call 119 now.\\n...", "t_ms": 815}\n\n'
     'event: done\ndata: {"event": "done", "total_ms": 815, "stages": {"triage": 1, "er": 812, "advice": 815}, '
-    '"notices": [], "timed_out": false, "rt101_ok": true, "rt105_ok": true}\n\n'
+    '"notices": [], "timed_out": false, "rt101_ok": true, "rt105_ok": true, '
+    '"llm": {"extract_ms": null, "rewrite_ms": null, "outcome": "off"}}\n\n'
 )
 
 RESPONSES: dict[int | str, dict[str, Any]] = {
     200: {
         "description": (
             "text/event-stream. Each message is `event: <name>` + `data: <json>`. Order: `triage` first "
-            "(rules only, RT-101 <= 1.5 s, with the 119 prompt for RED), then `er` and `pharmacy` as each "
+            "(rules only, RT-101 <= 1.5 s, with the 119 prompt for RED), `context` only if the LLM "
+            "(EM_LLM=anthropic) filled a missing place or time, then `er` and `pharmacy` as each "
             "worker finishes (either order; no pharmacy for RED), `notice` whenever a notice is known, "
-            "`advice`, and `done` (timings, rt101_ok, rt105_ok) after which the stream closes. "
+            "`advice`, and `done` (timings, rt101_ok, rt105_ok, llm) after which the stream closes. "
             "Capped at RT-105 (6 s): then `done` has rt105_ok=false. The `data` payloads follow the "
             "StreamEvent schema (discriminated by `event`)."
         ),

@@ -59,7 +59,7 @@ class TriageResult(BaseModel):
     call_119: bool
 
 
-LocationSource = Literal["request", "text", "default"]
+LocationSource = Literal["request", "text", "llm", "default"]  # llm: a known place named by the LLM
 
 
 class TriageOutcome(BaseModel):

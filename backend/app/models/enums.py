@@ -44,3 +44,14 @@ class Notice(StrEnum):
     LOCATION_DEFAULT = "LOCATION_DEFAULT"
     FALLBACK_CACHE = "FALLBACK_CACHE"  # live lookup failed: last saved data shown
     NO_DATA = "NO_DATA"  # live lookup failed and nothing is saved
+    LLM_FALLBACK = "LLM_FALLBACK"  # the LLM was expected but failed: rules/template used instead
+
+
+class LlmOutcome(StrEnum):
+    """What happened to an LLM job. off: no LLM call was made (EM_LLM=off, no key, or not needed)."""
+
+    OK = "ok"
+    TIMEOUT = "timeout"
+    INVALID = "invalid"
+    ERROR = "error"
+    OFF = "off"

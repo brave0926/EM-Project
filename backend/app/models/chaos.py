@@ -10,17 +10,19 @@ from pydantic import BaseModel, Field
 # Limits re-exported for schemas/chaos.py (schemas may import models, not core).
 from backend.app.core.config import CHAOS_DEFAULT_S, CHAOS_MAX_DELAY_MS, CHAOS_MAX_S  # noqa: F401
 
-ChaosTool = Literal["er", "pharmacy"]
-CHAOS_TOOLS: tuple[ChaosTool, ...] = ("er", "pharmacy")  # the tools with a breaker and a fallback cache
+ChaosTool = Literal["er", "pharmacy", "llm"]
+DATA_TOOLS: tuple[ChaosTool, ...] = ("er", "pharmacy")  # the tools with a breaker and a fallback cache
+CHAOS_TOOLS: tuple[ChaosTool, ...] = (*DATA_TOOLS, "llm")  # llm: both LLM jobs (rules/template take over)
 
 
 class ChaosTarget(StrEnum):
     ER = "er"
     PHARMACY = "pharmacy"
-    ALL = "all"  # er + pharmacy (OTC is a static list without a breaker, never targeted)
+    LLM = "llm"
+    ALL = "all"  # er + pharmacy (OTC is a static list without a breaker, never targeted; llm is separate)
 
     def tools(self) -> tuple[ChaosTool, ...]:
-        return CHAOS_TOOLS if self is ChaosTarget.ALL else (self.value,)  # type: ignore[return-value]
+        return DATA_TOOLS if self is ChaosTarget.ALL else (self.value,)  # type: ignore[return-value]
 
 
 class ChaosMode(StrEnum):

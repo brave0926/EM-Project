@@ -6,3 +6,4 @@ langgraph
 pytest
 pytest-asyncio
 mcp>=2.3,<3
+anthropic>=2.4.0

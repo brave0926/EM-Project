@@ -1,9 +1,12 @@
 """Supervisor graph for triage (LangGraph).
 
-    START -> triage -+- red:   er_worker ----------------------+-> advise -> END
-                     +- other: er_worker || pharmacy_worker ---+
+    START -> triage -> extract -+- red:   er_worker ----------------------+-> advise -> END
+                                +- other: er_worker || pharmacy_worker ---+
 
-triage classifies the query with rules (no network, fast first answer). The workers run in
+triage classifies the query with rules (no network, fast first answer). extract asks the LLM
+(EM_LLM=anthropic only) for a time or known place the rules missed; rules always win and severity
+never comes from the LLM. advise builds the template and lets the LLM rewrite it, keeping the
+template if the rewrite fails validation (LLM_FALLBACK). The workers run in
 parallel and reach data only through services -> MCP client. A failed lookup is answered from
 the last saved data (FALLBACK_CACHE) or, with nothing saved, adds UNAVAILABLE + NO_DATA instead
 of failing the request: severity, advice and the 119 prompt always come back.
@@ -35,6 +38,7 @@ from backend.app.services import (
     classifier_service,
     er_facility_service,
     language_service,
+    llm_service,
     location_service,
     metrics_service,
     otc_service,
@@ -77,8 +81,28 @@ async def triage_node(state: TriageState) -> TriageState:
         "location_source": source,
         "at_time": at_time,
         "requested_time": at_time,
-        "notices": [Notice.LOCATION_DEFAULT] if source == "default" else [],
+        # with an LLM, extract may still find the place: LOCATION_DEFAULT is decided there
+        "notices": [Notice.LOCATION_DEFAULT] if source == "default" and not llm_service.enabled() else [],
     }
+
+
+async def extract_node(state: TriageState) -> TriageState:
+    """Fill a missing place or time from the LLM (known places only, never coordinates)."""
+    if not llm_service.enabled():
+        return {}
+    need_place = state["location_source"] == "default"
+    need_time = state.get("at_time") is None and state["triage"].severity is not Severity.RED
+    if not (need_place or need_time):
+        return {}
+    ctx, job = await llm_service.extract_context(state["query"], state["language"])
+    update: TriageState = {"notices": [Notice.LLM_FALLBACK] if job.outcome in llm_service.FAILED else []}
+    if need_place and ctx is not None and ctx.place is not None:
+        update["location"], update["location_source"] = location_service.known_place(ctx.place), "llm"
+    elif need_place:
+        update["notices"].append(Notice.LOCATION_DEFAULT)
+    if need_time and ctx is not None and ctx.time is not None:
+        update["at_time"] = update["requested_time"] = ctx.time
+    return update
 
 
 def route(state: TriageState) -> list[str]:
@@ -133,17 +157,23 @@ async def advise(state: TriageState) -> TriageState:
         state["language"], state["triage"], er, pharmacies, state.get("otc", []), notices,
         state.get("requested_time"),
     )
-    return {"advice": await advice_service.polish_advice(text, state["language"]), "notices": extra}
+    required = advice_service.required_in_rewrite(text, state["language"], state["triage"], [*er, *pharmacies])
+    advice, job = await llm_service.rewrite_advice(text, state["language"], required)
+    if job.outcome in llm_service.FAILED:
+        extra = [*extra, Notice.LLM_FALLBACK]
+    return {"advice": advice, "notices": extra}
 
 
 def build_graph():
     graph = StateGraph(TriageState)
     graph.add_node("triage", triage_node)
+    graph.add_node("extract", extract_node)
     graph.add_node("er_worker", er_worker)
     graph.add_node("pharmacy_worker", pharmacy_worker)
     graph.add_node("advise", advise)
     graph.add_edge(START, "triage")
-    graph.add_conditional_edges("triage", route, ["er_worker", "pharmacy_worker"])
+    graph.add_edge("triage", "extract")
+    graph.add_conditional_edges("extract", route, ["er_worker", "pharmacy_worker"])
     graph.add_edge("er_worker", "advise")
     graph.add_edge("pharmacy_worker", "advise")
     graph.add_edge("advise", END)

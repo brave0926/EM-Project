@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.app.models.enums import Notice, Severity
+from backend.app.models.enums import LlmOutcome, Notice, Severity
 from backend.app.schemas.health import BreakerStatus
 
 
@@ -34,10 +34,19 @@ class MetricsRecordSchema(BaseModel):
     notices: list[Notice]
     timed_out: bool
     chaos_active: bool
+    llm_extract_ms: int | None = Field(description="LLM context extraction; null when not called.")
+    llm_rewrite_ms: int | None = Field(description="LLM advice rewrite; null when not called.")
+    llm_outcome: LlmOutcome = Field(description="Worst LLM outcome of the request; off when no call.")
     rt101_ok: bool | None
     rt102_ok: bool | None
     rt103_ok: bool | None
     rt105_ok: bool
+
+
+class LlmSummarySchema(BaseModel):
+    extract_ms: ContractStatsSchema = Field(description="LLM context extraction latency (limit LLM_TIMEOUT_S).")
+    rewrite_ms: ContractStatsSchema = Field(description="LLM advice rewrite latency (limit LLM_TIMEOUT_S).")
+    outcomes: dict[str, int] = Field(description="Requests per LLM outcome: ok, timeout, invalid, error, off.")
 
 
 class MetricsResponse(BaseModel):
@@ -69,6 +78,13 @@ class MetricsResponse(BaseModel):
                         {"contract": "RT-105", "metric": "total_ms", "limit_ms": 6000, "count": 2,
                          "p50_ms": 900, "p95_ms": 2010, "max_ms": 2010, "ok_rate": 1.0},
                     ],
+                    "llm": {
+                        "extract_ms": {"contract": "LLM", "metric": "extract_ms", "limit_ms": 1000, "count": 1,
+                                       "p50_ms": 420, "p95_ms": 420, "max_ms": 420, "ok_rate": 1.0},
+                        "rewrite_ms": {"contract": "LLM", "metric": "rewrite_ms", "limit_ms": 1000, "count": 2,
+                                       "p50_ms": 610, "p95_ms": 1000, "max_ms": 1000, "ok_rate": 0.5},
+                        "outcomes": {"ok": 1, "timeout": 1, "invalid": 0, "error": 0, "off": 0},
+                    },
                     "breakers": {
                         "er": {"state": "CLOSED", "failures": 1, "last_error": "TIMEOUT"},
                         "pharmacy": {"state": "CLOSED", "failures": 0, "last_error": None},
@@ -92,6 +108,7 @@ class MetricsResponse(BaseModel):
     fallback_served_total: int = Field(ge=0, description="Cache answers since start, also from /facilities/*.")
     contracts: list[ContractStatsSchema] = Field(description="Per contract: count, p50, p95, max, ok_rate.")
     by_chaos: dict[str, int] = Field(description="Requests made while /demo/chaos was on / off.")
+    llm: LlmSummarySchema = Field(description="LLM job latency and outcome counters (no user text).")
     breakers: dict[str, BreakerStatus] = Field(description="Circuit breaker per tool (er, pharmacy).")
     recent: list[MetricsRecordSchema] = Field(
         default_factory=list, description="Last N records, newest last; only with ?recent=N (max 50)."

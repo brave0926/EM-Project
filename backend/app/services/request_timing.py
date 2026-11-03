@@ -13,9 +13,14 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
+from time import perf_counter
 
 from backend.app.clients.chaos import get_chaos_store
 from backend.app.core.config import demo_chaos_enabled
+from backend.app.models.enums import LlmOutcome
+from backend.app.models.llm import LlmStats
+
+_WORST_FIRST = (LlmOutcome.ERROR, LlmOutcome.TIMEOUT, LlmOutcome.INVALID, LlmOutcome.OK)
 
 
 @dataclass
@@ -23,6 +28,17 @@ class RequestTiming:
     tools: dict[str, int] = field(default_factory=dict)  # tool -> ms of its upstream call
     fallback_ms: int | None = None  # slowest cache answer of this request
     chaos_active: bool = False  # /demo/chaos was on when the request started
+    started: float = field(default_factory=perf_counter)
+    llm_ms: dict[str, int] = field(default_factory=dict)  # job (extract, rewrite) -> ms
+    llm_outcomes: dict[str, LlmOutcome] = field(default_factory=dict)  # job -> outcome (calls made)
+
+    def elapsed_s(self) -> float:
+        return perf_counter() - self.started
+
+    def llm_stats(self) -> LlmStats:
+        ran = [o for o in self.llm_outcomes.values() if o is not LlmOutcome.OFF]
+        outcome = next((o for o in _WORST_FIRST if o in ran), LlmOutcome.OFF)
+        return LlmStats(extract_ms=self.llm_ms.get("extract"), rewrite_ms=self.llm_ms.get("rewrite"), outcome=outcome)
 
 
 def chaos_active() -> bool:
@@ -51,6 +67,18 @@ def note_tool(tool: str, ms: int) -> None:
     timing = _current.get()
     if timing is not None:
         timing.tools[tool] = ms
+
+
+def current() -> RequestTiming | None:
+    return _current.get()
+
+
+def note_llm(job: str, ms: int | None, outcome: LlmOutcome) -> None:
+    timing = _current.get()
+    if timing is not None:
+        if ms is not None:
+            timing.llm_ms[job] = ms
+        timing.llm_outcomes[job] = outcome
 
 
 def note_fallback(ms: int) -> None:

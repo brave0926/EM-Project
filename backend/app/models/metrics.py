@@ -11,7 +11,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.app.models.enums import Notice, Severity
+from backend.app.models.enums import LlmOutcome, Notice, Severity
 
 RequestKind = Literal["triage", "stream"]
 SourceLabel = Literal["MOCK", "LIVE", "CACHED"]
@@ -32,6 +32,9 @@ class MetricsRecord(BaseModel):
     notices: list[Notice]
     timed_out: bool = False  # stream cut by the RT-105 cap
     chaos_active: bool = False  # /demo/chaos was on during the request
+    llm_extract_ms: int | None = Field(default=None, ge=0)
+    llm_rewrite_ms: int | None = Field(default=None, ge=0)
+    llm_outcome: LlmOutcome = LlmOutcome.OFF
     rt101_ok: bool | None  # None: not a stream
     rt102_ok: bool | None  # None: no tool call was made
     rt103_ok: bool | None  # None: no fallback served
@@ -49,6 +52,12 @@ class ContractStats(BaseModel):
     ok_rate: float = 0.0  # share of samples within the limit; 0.0 when count is 0
 
 
+class LlmSummary(BaseModel):
+    extract_ms: ContractStats  # limit = LLM_TIMEOUT_S
+    rewrite_ms: ContractStats
+    outcomes: dict[str, int]  # ok, timeout, invalid, error, off (requests in the window)
+
+
 class MetricsSummary(BaseModel):
     capacity: int  # ring buffer size
     window: int  # records currently kept (<= capacity); every count below is over this window
@@ -63,5 +72,6 @@ class MetricsSummary(BaseModel):
     fallback_served_total: int  # cache answers since start, also from /facilities/*
     by_chaos: dict[str, int]  # requests with /demo/chaos on / off
     contracts: list[ContractStats]
+    llm: LlmSummary
     breakers: dict[str, dict[str, Any]]
     recent: list[MetricsRecord] = []  # newest last; only when asked for (GET /metrics?recent=N)

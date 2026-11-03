@@ -16,7 +16,10 @@ FALLBACK_BUDGET_S = 0.2  # RT-103: serving the last good data after a failure
 BREAKER_FAILURES = 3  # consecutive failures that open a tool's circuit
 BREAKER_OPEN_S = 30.0  # how long an open circuit skips upstream calls
 END_TO_END_S = 6.0  # RT-105: whole triage (the stream is cut off here)
-LLM_TIMEOUT_S = 1.0  # advice rewrite budget; the template is used if the LLM is slower
+LLM_TIMEOUT_S = 1.0  # budget per LLM job (extraction, rewrite); the rules/template are used if slower
+LLM_RESERVE_S = 0.3  # an LLM job never starts with less than this left before RT-105
+LLM_REWRITE_MAX_CHARS = 900  # the prompt asks for ~600; longer rewrites are discarded
+DEFAULT_LLM_MODEL = "claude-haiku-5-5"
 METRICS_CAPACITY = 1000  # /metrics keeps the last N request records (ring buffer)
 CHAOS_DEFAULT_S = 60  # /demo/chaos: a switch expires after this unless duration_s is given
 CHAOS_MAX_S = 300  # longest allowed chaos activation
@@ -25,6 +28,15 @@ CHAOS_MAX_DELAY_MS = 10_000
 DEFAULT_REGION = "Chungju"
 FRONTEND_DIR = ROOT / "frontend"  # served at / by main.py
 KST = timezone(timedelta(hours=9))  # local time for opening hours (no DST in Korea)
+
+
+def llm_mode() -> str:
+    """EM_LLM: "anthropic" turns the LLM on; anything else (default) is "off". Read per call."""
+    return "anthropic" if os.environ.get("EM_LLM", "").strip().lower() == "anthropic" else "off"
+
+
+def llm_model() -> str:
+    return os.environ.get("EM_LLM_MODEL", "").strip() or DEFAULT_LLM_MODEL
 
 
 def demo_chaos_enabled() -> bool:

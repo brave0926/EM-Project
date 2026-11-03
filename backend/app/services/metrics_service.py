@@ -14,10 +14,24 @@ from collections import Counter, deque
 from collections.abc import Callable, Iterable, Sequence
 from datetime import UTC, datetime
 
-from backend.app.core.config import END_TO_END_S, FALLBACK_BUDGET_S, METRICS_CAPACITY, TOOL_TIMEOUT_S, TTFT_S
+from backend.app.core.config import (
+    END_TO_END_S,
+    FALLBACK_BUDGET_S,
+    LLM_TIMEOUT_S,
+    METRICS_CAPACITY,
+    TOOL_TIMEOUT_S,
+    TTFT_S,
+)
 from backend.app.models.domain import ERFacility, PharmacyFacility
-from backend.app.models.enums import DataStatus, Notice, Severity
-from backend.app.models.metrics import ContractStats, MetricsRecord, MetricsSummary, RequestKind, SourceLabel
+from backend.app.models.enums import DataStatus, LlmOutcome, Notice, Severity
+from backend.app.models.metrics import (
+    ContractStats,
+    LlmSummary,
+    MetricsRecord,
+    MetricsSummary,
+    RequestKind,
+    SourceLabel,
+)
 from backend.app.services import fallback_service, request_timing
 from backend.app.services.request_timing import RequestTiming
 
@@ -25,6 +39,7 @@ TTFT_MS = round(TTFT_S * 1000)
 TOOL_MS = round(TOOL_TIMEOUT_S * 1000)
 FALLBACK_MS = round(FALLBACK_BUDGET_S * 1000)
 TOTAL_MS = round(END_TO_END_S * 1000)
+LLM_MS = round(LLM_TIMEOUT_S * 1000)
 
 
 def _utc_now() -> datetime:
@@ -87,6 +102,7 @@ def build_record(
 ) -> MetricsRecord:
     er_ms, pharmacy_ms = timing.tools.get("er"), timing.tools.get("pharmacy")
     tool_times = [t for t in (er_ms, pharmacy_ms) if t is not None]
+    llm = timing.llm_stats()
     return MetricsRecord(
         kind=kind,
         at=at,
@@ -100,6 +116,9 @@ def build_record(
         notices=list(dict.fromkeys(notices)),
         timed_out=timed_out,
         chaos_active=timing.chaos_active or request_timing.chaos_active(),
+        llm_extract_ms=llm.extract_ms,
+        llm_rewrite_ms=llm.rewrite_ms,
+        llm_outcome=llm.outcome,
         rt101_ok=None if ttft_ms is None else ttft_ms <= TTFT_MS,
         rt102_ok=all(t <= TOOL_MS for t in tool_times) if tool_times else None,
         rt103_ok=None if timing.fallback_ms is None else timing.fallback_ms <= FALLBACK_MS,
@@ -177,6 +196,11 @@ def summarise(
             # RT-105 uses the record's flag: a stream cut at the cap fails even if total_ms <= 6000
             contract_stats("RT-105", "total_ms", TOTAL_MS, [(r.total_ms, r.rt105_ok) for r in records]),
         ],
+        llm=LlmSummary(
+            extract_ms=contract_stats("LLM", "extract_ms", LLM_MS, _within((r.llm_extract_ms for r in records), LLM_MS)),
+            rewrite_ms=contract_stats("LLM", "rewrite_ms", LLM_MS, _within((r.llm_rewrite_ms for r in records), LLM_MS)),
+            outcomes={o.value: sum(r.llm_outcome is o for r in records) for o in LlmOutcome},
+        ),
         breakers=breakers,
         recent=list(records[-recent:]) if recent > 0 else [],
     )

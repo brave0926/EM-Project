@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from backend.app.models.domain import ERFacility, Location, LocationSource, PharmacyFacility
 from backend.app.models.enums import Category, Language, Notice, Severity
+from backend.app.models.llm import LlmStats
 
 
 class StreamLocation(Location):
@@ -23,6 +24,15 @@ class TriageEvent(BaseModel):
     location: StreamLocation
     at_time: str | None  # local time for pharmacy hours; None for critical cases
     prompt_119: str | None  # the 119 line in the user's language, for RED only
+    t_ms: int = Field(ge=0)
+
+
+class ContextEvent(BaseModel):
+    """Only when the LLM filled what the rules missed: the place (a known place) and/or the time."""
+
+    event: Literal["context"] = "context"
+    location: StreamLocation
+    at_time: str | None
     t_ms: int = Field(ge=0)
 
 
@@ -61,9 +71,10 @@ class DoneEvent(BaseModel):
     timed_out: bool  # the RT-105 cap cut the run short; advice is then the template
     rt101_ok: bool  # first event <= 1.5 s
     rt105_ok: bool  # whole stream <= 6 s
+    llm: LlmStats = Field(default_factory=LlmStats)  # extract_ms, rewrite_ms, outcome (off when no call)
 
 
 StreamEvent = Annotated[
-    TriageEvent | ErEvent | PharmacyEvent | NoticeEvent | AdviceEvent | DoneEvent,
+    TriageEvent | ContextEvent | ErEvent | PharmacyEvent | NoticeEvent | AdviceEvent | DoneEvent,
     Field(discriminator="event"),
 ]
