@@ -16,6 +16,7 @@ One record per finished `POST /api/triage` (kind `triage`) and `POST /api/triage
 | `total_ms` | whole request (RT-105) |
 | `severity`, `notices`, `sources` | triage level, warnings, data behind the answer (`MOCK`, `LIVE`, `CACHED`) |
 | `rt101_ok` .. `rt105_ok`, `timed_out` | per-request contract flags; a stream cut at the RT-105 cap fails RT-105 |
+| `chaos_active` | `/demo/chaos` was on during the request (`docs/chaos.md`) |
 
 Tool and fallback times are taken in `services/fallback_service.py`, where the MCP call happens.
 `request_timing.track()` opens a collector in a ContextVar for the request; the graph's worker
@@ -37,8 +38,9 @@ Records live in memory only (lost on restart, never written to disk).
   `core/config.py`. An empty window gives zeros, not an error.
 - Percentiles are **nearest-rank**: sort the n samples and take the value at rank `ceil(p/100 * n)`
   (1-based). Every reported value was really measured; with few samples p95 equals the max.
-- Counters: by kind, severity, notice, source mix (`MOCK`, `CACHED+LIVE`, `NONE`, ...), fallback
-  served, and the circuit breaker per tool (same as `/health`).
+- Counters: by kind, severity, notice, source mix (`MOCK`, `CACHED+LIVE`, `NONE`, ...), by chaos
+  (`on`/`off`), fallback served, and the circuit breaker per tool (same as `/health`).
+- `GET /metrics?recent=N` (max 50) also returns the last N records, newest last (no user text).
 
 ## Measuring the contracts: scripts/bench_contracts.py
 
