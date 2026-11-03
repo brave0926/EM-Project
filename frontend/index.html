@@ -57,6 +57,12 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
 #nts:empty::before,#hosp:empty::before,#pharm:empty::before{content:"\2014";color:var(--mu)}
 #err{display:none;background:rgba(251,113,133,.12);border:1px solid var(--rd);color:var(--rd);padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px}
 .go button:disabled{opacity:.6;cursor:wait}
+#demo{display:none;border-color:var(--am)}
+#demo h3{color:var(--am)}
+#demo .btns{display:flex;flex-wrap:wrap;gap:8px}
+#demo button{background:transparent;color:var(--am);border:1px solid var(--am);border-radius:6px;padding:6px 12px;font-size:13px;cursor:pointer}
+#demo #dmReset{color:var(--em);border-color:var(--em)}
+#dmSt{font:12px var(--mono);color:var(--mu);margin-top:8px;white-space:pre-wrap}
 </style></head><body><div class="w">
 <header><div><h1><span>EM-Agent</span> <span class="mock" id="srcTag" style="display:none"></span></h1><div class="sub" id="t_sub"></div></div>
 <div class="lang" id="lang"></div></header>
@@ -69,6 +75,10 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
 <div id="locst"></div>
 <div class="go"><button id="run"></button><label style="display:none"><input type="checkbox" id="sim"><span id="t_sim"></span></label></div>
 </div>
+
+<div class="panel sec" id="demo"><h3>Demo controls</h3>
+<div class="btns"><button id="dmFail" type="button">Simulate API failure</button><button id="dmSlow" type="button">Simulate slow API (3 s)</button><button id="dmReset" type="button">Reset</button></div>
+<div id="dmSt"></div></div>
 
 <div id="err" role="alert"></div>
 <div id="sev" role="status"></div>
@@ -161,4 +171,18 @@ if(!ev.done)throw new Error("cut")}
 catch(e){var er=$("err");er.style.display="block";er.textContent=e.status?fmt(t.eHttp,{c:e.status}):ev.triage?t.eCut:t.eNet;if(!ev.advice)$("adv").textContent="";lg("error: "+(e.status||e.message))}
 finally{busy=false;$("run").disabled=false}}
 $("run").onclick=run;setLang("en");
+// Demo controls: only with ?demo=1 (presenter view, English only). Normal mode sends nothing extra.
+if(new URLSearchParams(location.search).get("demo")==="1")(function(){
+$("demo").style.display="block";var msg="";
+async function api(method,body){var r=await fetch("/demo/chaos",{method:method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+if(r.status===404)throw new Error("chaos is off on the server: start it with EM_DEMO_CHAOS=1");if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+function act(method,body,label){return function(){api(method,body).then(function(){msg=label;poll()},function(e){msg=e.message;poll()})}}
+$("dmFail").onclick=act("POST",{target:"all",mode:"error",duration_s:60},"API failure on (ER + pharmacy, 60 s)");
+$("dmSlow").onclick=act("POST",{target:"all",mode:"delay",delay_ms:3000,duration_s:60},"Slow API on: 3 s per call, past the 2 s limit (60 s)");
+$("dmReset").onclick=act("DELETE",null,"Reset: chaos off; an open breaker recovers via HALF_OPEN after 30 s");
+async function poll(){var lines=[];
+try{var h=await(await fetch("/health")).json();lines.push("Breakers: "+Object.keys(h.breakers).map(function(k){var b=h.breakers[k];return k+" "+b.state+(b.failures?" ("+b.failures+" failures"+(b.last_error?", "+b.last_error:"")+")":"")}).join(" | "))}catch(e){lines.push("Breakers: ?")}
+try{var c=await api("GET");lines.push("Chaos: "+(c.active?Object.keys(c.tools).map(function(k){var x=c.tools[k];return k+" "+x.mode+(x.delay_ms?" "+x.delay_ms+" ms":"")+(x.seconds_left?", "+x.seconds_left+" s left":"")}).join(" | "):"off"))}catch(e){lines.push("Chaos: "+e.message)}
+if(msg)lines.push(msg);$("dmSt").textContent=lines.join("\n")}
+poll();setInterval(poll,2000)})();
 </script></body></html>
