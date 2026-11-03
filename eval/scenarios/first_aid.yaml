@@ -1,0 +1,453 @@
+# First-aid evaluation scenarios (N6). YAML in JSON flow style: read with json after dropping '#' lines,
+# so no YAML dependency is needed. Run: uv run pytest -q tests/test_first_aid_scenarios.py
+# Each case: lang, text (demo phrases only, no personal data), entry (expected knowledge-base entry),
+# severity (optional, exact), must (item ids; "escalate"; "otc"; "phrase:<text>") and must_not
+# ("severity:<level>", "otc", "escalate", "llm" = items must not be LLM-selected). Every case is also
+# checked against the global rules: no dose, brand, drug name, prescription drug or diagnosis.
+{
+ "version": 1,
+ "cases": [
+  {
+   "id": "en_burn_minor",
+   "lang": "en",
+   "text": "small burn on my finger from the oven",
+   "entry": "burn",
+   "severity": "green",
+   "must": [
+    "burn.cool",
+    "burn.no_creams"
+   ],
+   "must_not": [
+    "escalate",
+    "severity:amber",
+    "severity:red"
+   ]
+  },
+  {
+   "id": "en_burn_chemical",
+   "lang": "en",
+   "text": "acid burn on my arm",
+   "entry": "burn",
+   "must": [
+    "burn.cool",
+    "escalate"
+   ],
+   "must_not": []
+  },
+  {
+   "id": "en_cut_deep",
+   "lang": "en",
+   "text": "deep cut on my hand, bleeding",
+   "entry": "cut",
+   "severity": "amber",
+   "must": [
+    "cut.press",
+    "cut.no_remove",
+    "escalate"
+   ],
+   "must_not": [
+    "severity:green"
+   ]
+  },
+  {
+   "id": "en_fever_worse",
+   "lang": "en",
+   "text": "fever 38.5 that won't come down",
+   "entry": "fever",
+   "must": [
+    "fever.rest",
+    "escalate"
+   ],
+   "must_not": [
+    "severity:red"
+   ]
+  },
+  {
+   "id": "en_minor",
+   "lang": "en",
+   "text": "mild sore throat and runny nose",
+   "entry": "minor",
+   "severity": "green",
+   "must": [
+    "minor.fluids",
+    "otc"
+   ],
+   "must_not": [
+    "escalate"
+   ]
+  },
+  {
+   "id": "en_critical",
+   "lang": "en",
+   "text": "my father is unconscious and not breathing",
+   "entry": "critical",
+   "severity": "red",
+   "must": [
+    "critical.call_119",
+    "critical.no_food",
+    "phrase:119"
+   ],
+   "must_not": [
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "en_head_injury",
+   "lang": "en",
+   "text": "my son hit his head and is vomiting",
+   "entry": "head_injury",
+   "severity": "amber",
+   "must": [
+    "head_injury.go_er",
+    "escalate"
+   ],
+   "must_not": [
+    "severity:green",
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "en_snake_bite",
+   "lang": "en",
+   "text": "snake bite on my leg",
+   "entry": "bite",
+   "severity": "red",
+   "must": [
+    "bite.no_tie",
+    "escalate",
+    "phrase:119"
+   ],
+   "must_not": [
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "en_out_ear",
+   "lang": "en",
+   "text": "an insect flew into my ear",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.stay",
+    "phrase:no specific guide"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "en_out_tooth",
+   "lang": "en",
+   "text": "knocked out a tooth playing football",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.go_er"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ru_out_hiccups",
+   "lang": "ru",
+   "text": "икота не проходит уже час",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.pharmacist"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ru_cut_deep",
+   "lang": "ru",
+   "text": "глубокий порез руки, идёт кровь",
+   "entry": "cut",
+   "severity": "amber",
+   "must": [
+    "cut.press",
+    "escalate"
+   ],
+   "must_not": [
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ru_fever_headache",
+   "lang": "ru",
+   "text": "температура 38, болит голова",
+   "entry": "fever",
+   "severity": "amber",
+   "must": [
+    "fever.rest",
+    "fever.no_glass"
+   ],
+   "must_not": [
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ru_choking",
+   "lang": "ru",
+   "text": "ребёнок подавился конфетой",
+   "entry": "choking",
+   "severity": "red",
+   "must": [
+    "choking.call_119",
+    "choking.no_food"
+   ],
+   "must_not": [
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "ru_allergy_airway",
+   "lang": "ru",
+   "text": "аллергия, отёк губ и языка",
+   "entry": "allergy",
+   "severity": "red",
+   "must": [
+    "allergy.no_stand",
+    "escalate"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ru_electric",
+   "lang": "ru",
+   "text": "мужа ударило током",
+   "entry": "electric_shock",
+   "severity": "red",
+   "must": [
+    "electric_shock.no_touch",
+    "electric_shock.power_off"
+   ],
+   "must_not": [
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "ru_out_foreign",
+   "lang": "ru",
+   "text": "ребёнок засунул бусину в нос",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.stay"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "zh_burn_severe",
+   "lang": "zh",
+   "text": "手部严重烧伤",
+   "entry": "burn",
+   "severity": "amber",
+   "must": [
+    "burn.cool",
+    "escalate"
+   ],
+   "must_not": [
+    "severity:green"
+   ]
+  },
+  {
+   "id": "zh_cut_deep",
+   "lang": "zh",
+   "text": "深度割伤出血",
+   "entry": "cut",
+   "severity": "amber",
+   "must": [
+    "cut.press"
+   ],
+   "must_not": [
+    "severity:green"
+   ]
+  },
+  {
+   "id": "zh_minor",
+   "lang": "zh",
+   "text": "轻微喉咙痛",
+   "entry": "minor",
+   "severity": "green",
+   "must": [
+    "minor.fluids"
+   ],
+   "must_not": [
+    "escalate"
+   ]
+  },
+  {
+   "id": "zh_drowning",
+   "lang": "zh",
+   "text": "孩子溺水了，没有反应",
+   "entry": "drowning",
+   "severity": "red",
+   "must": [
+    "drowning.safety",
+    "drowning.no_food"
+   ],
+   "must_not": [
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "zh_fracture",
+   "lang": "zh",
+   "text": "手臂骨折，骨头露出来了",
+   "entry": "fracture",
+   "severity": "amber",
+   "must": [
+    "fracture.no_food",
+    "escalate"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "zh_eye_chemical",
+   "lang": "zh",
+   "text": "清洁剂进了眼睛",
+   "entry": "eye_injury",
+   "severity": "amber",
+   "must": [
+    "eye_injury.no_rub"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "zh_out_tooth",
+   "lang": "zh",
+   "text": "牙齿被撞掉了",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.stay"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ko_out_hiccups",
+   "lang": "ko",
+   "text": "딸꾹질이 멈추지 않아요",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.go_er"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ko_fever_headache",
+   "lang": "ko",
+   "text": "열이 나고 머리가 아파요",
+   "entry": "fever",
+   "severity": "amber",
+   "must": [
+    "fever.fluids"
+   ],
+   "must_not": [
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ko_heavy_bleeding",
+   "lang": "ko",
+   "text": "피가 멈추지 않아요",
+   "entry": "heavy_bleeding",
+   "severity": "red",
+   "must": [
+    "heavy_bleeding.press",
+    "heavy_bleeding.no_wash"
+   ],
+   "must_not": [
+    "otc",
+    "llm"
+   ]
+  },
+  {
+   "id": "ko_dog_bite",
+   "lang": "ko",
+   "text": "개에게 물렸어요",
+   "entry": "bite",
+   "severity": "amber",
+   "must": [
+    "bite.go_er",
+    "bite.no_medicine"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ko_out_ear",
+   "lang": "ko",
+   "text": "귀에 벌레가 들어갔어요",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.stay"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  },
+  {
+   "id": "ko_out_splinter",
+   "lang": "ko",
+   "text": "손가락에 가시가 박혔어요",
+   "entry": "generic",
+   "severity": "amber",
+   "must": [
+    "generic.watch"
+   ],
+   "must_not": [
+    "otc",
+    "llm",
+    "severity:green"
+   ]
+  }
+ ]
+}
