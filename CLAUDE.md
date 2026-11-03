@@ -83,7 +83,7 @@ f) Never put keys, tokens, personal data or raw API responses in PROGRESS.md.
 - Python 3.11+, type hints, Pydantic, async only.
 - Small commits, pytest for new logic, run tests before saying done.
 - Not medical advice; 119 prompt for critical cases.
-- Ask before adding dependencies beyond fastapi, uvicorn, httpx, pydantic, langgraph, pytest, mcp (v2 SDK: `MCPServer`, not FastMCP).
+- Ask before adding dependencies beyond fastapi, uvicorn, httpx, pydantic, langgraph, pytest, mcp (v2 SDK: `MCPServer`, not FastMCP), anthropic (LLM client, `EM_LLM=anthropic` only; see `docs/llm.md`).
 
 ## Git workflow
 
