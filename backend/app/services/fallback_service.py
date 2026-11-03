@@ -13,7 +13,7 @@ import logging
 import sqlite3
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from time import monotonic
+from time import monotonic, perf_counter
 from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import ValidationError
@@ -23,6 +23,7 @@ from backend.app.clients.mcp_client import McpClientError
 from backend.app.core.config import FALLBACK_BUDGET_S
 from backend.app.models.domain import ERFacility, PharmacyFacility
 from backend.app.models.enums import DataStatus
+from backend.app.services import request_timing
 from backend.app.services.circuit_breaker import CircuitBreaker
 
 log = logging.getLogger(__name__)
@@ -70,20 +71,24 @@ async def fetch_or_fallback(
 ) -> Fetched[F]:
     b = breaker(tool)
     if b.allow():
+        t0 = perf_counter()
         try:
             items = await fetch()
         except McpClientError as exc:
+            request_timing.note_tool(tool, _ms_since(t0))
             b.record_failure(exc.code)
             error = exc
         except BaseException:
             b.release()
             raise
         else:
+            request_timing.note_tool(tool, _ms_since(t0))
             b.record_success()
             await _save(tool, key, items, meta or {})
             return Fetched(items)
     else:
         error = McpClientError("UNAVAILABLE", f"{tool}: circuit open, upstream skipped")
+    failed_at = perf_counter()  # RT-103 is measured from the moment of failure
     saved = await _load(tool, key)
     if saved is None:
         raise error
@@ -92,7 +97,12 @@ async def fetch_or_fallback(
     except ValidationError:  # saved by an older model version
         log.warning("fallback data for %s no longer validates", tool)
         raise error from None
+    request_timing.note_fallback(_ms_since(failed_at))
     return Fetched(cached, from_cache=True, meta=saved.meta)
+
+
+def _ms_since(t0: float) -> int:
+    return max(0, round((perf_counter() - t0) * 1000))
 
 
 def _as_cached(item: dict[str, Any]) -> dict[str, Any]:

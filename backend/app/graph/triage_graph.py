@@ -36,8 +36,10 @@ from backend.app.services import (
     er_facility_service,
     language_service,
     location_service,
+    metrics_service,
     otc_service,
     pharmacy_facility_service,
+    request_timing,
     time_service,
 )
 
@@ -176,10 +178,11 @@ async def run_triage(
     lon: float | None = None,
     at_time: str | None = None,
 ) -> TriageOutcome:
-    t0 = time.perf_counter()
-    state = await _graph.ainvoke(_input(query, language, lat, lon, at_time))
+    with request_timing.track() as timing:
+        t0 = time.perf_counter()
+        state = await _graph.ainvoke(_input(query, language, lat, lon, at_time))
     triage = state["triage"]
-    return TriageOutcome(
+    outcome = TriageOutcome(
         language=state["language"],
         category=triage.category,
         severity=triage.severity,
@@ -194,3 +197,8 @@ async def run_triage(
         advice=state["advice"],
         total_ms=round((time.perf_counter() - t0) * 1000),
     )
+    metrics_service.record(
+        "triage", timing, total_ms=outcome.total_ms, severity=outcome.severity, notices=outcome.notices,
+        facilities=[*outcome.er, *outcome.pharmacies],
+    )
+    return outcome

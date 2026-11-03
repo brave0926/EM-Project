@@ -8,11 +8,13 @@ service turns them into events, in the order the nodes finish:
 The whole stream is capped at RT-105: when the cap hits, the graph is closed (its running
 workers are cancelled), missing workers get an UNAVAILABLE notice, the advice comes from the
 template, and done reports rt105_ok=false. Closing this generator (client gone) closes the graph.
+Each finished stream is recorded for GET /metrics (timings only, never the user's text).
 """
 
 from __future__ import annotations
 
 import asyncio
+from contextlib import aclosing
 from collections.abc import AsyncIterator, Callable
 from time import perf_counter
 from typing import Any
@@ -30,7 +32,7 @@ from backend.app.models.stream import (
     StreamLocation,
     TriageEvent,
 )
-from backend.app.services import advice_service
+from backend.app.services import advice_service, metrics_service, request_timing
 
 
 class _Run:
@@ -126,6 +128,18 @@ async def stream_triage(
     budget_s: float = END_TO_END_S,
     clock: Callable[[], float] = perf_counter,
 ) -> AsyncIterator[StreamEvent]:
+    with request_timing.track() as timing:  # the graph's node tasks start inside, so they see it
+        async with aclosing(_stream(updates, budget_s, clock, timing)) as events:  # client gone -> graph closed
+            async for event in events:
+                yield event
+
+
+async def _stream(
+    updates: AsyncIterator[dict[str, Any]],
+    budget_s: float,
+    clock: Callable[[], float],
+    timing: request_timing.RequestTiming,
+) -> AsyncIterator[StreamEvent]:
     run = _Run(clock)
     timed_out = False
     try:
@@ -152,6 +166,12 @@ async def stream_triage(
         for event in _cut_short(run):
             yield event
     total = run.ms()
+    triage: TriageResult | None = run.state.get("triage")
+    metrics_service.record(
+        "stream", timing, total_ms=total, ttft_ms=run.first_ms, timed_out=timed_out,
+        severity=triage.severity if triage else None, notices=run.notices,
+        facilities=[*run.state.get("er", []), *run.state.get("pharmacies", [])],
+    )
     yield DoneEvent(
         total_ms=total,
         stages=run.stages,

@@ -14,6 +14,7 @@ from backend.app.controllers import (
     facilities_er_controller,
     facilities_pharmacy_controller,
     health_controller,
+    metrics_controller,
     otc_controller,
     triage_controller,
     triage_stream_controller,
@@ -42,5 +43,6 @@ app.include_router(triage_stream_controller.router, tags=["Triage"])
 app.include_router(facilities_er_controller.router, tags=["Facilities"])
 app.include_router(facilities_pharmacy_controller.router, tags=["Facilities"])
 app.include_router(otc_controller.router, tags=["OTC"])
+app.include_router(metrics_controller.router, tags=["Metrics"])
 # Last: the page at / (same origin as the API, so no CORS); API routes and /docs match first.
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

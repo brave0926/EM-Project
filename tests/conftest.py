@@ -8,7 +8,7 @@ from backend.app.clients.fallback_store import FallbackStore, set_fallback_store
 from backend.app.clients.mcp_client import McpClient, set_mcp_client
 from backend.app.main import app
 from mcp_server.providers import MockProvider
-from backend.app.services import fallback_service
+from backend.app.services import fallback_service, metrics_service, request_timing
 from mcp_server.server import build_server
 
 
@@ -21,6 +21,16 @@ def fresh_fallback(tmp_path):
     yield store
     set_fallback_store(None)
     fallback_service.reset_breakers()
+
+
+@pytest.fixture(autouse=True)
+def fresh_metrics():
+    """Every test: an empty metrics store and a zero fallback counter."""
+    metrics_service.set_store(None)
+    request_timing.reset_fallback_total()
+    yield metrics_service.get_store()
+    metrics_service.set_store(None)
+    request_timing.reset_fallback_total()
 
 
 @pytest_asyncio.fixture
