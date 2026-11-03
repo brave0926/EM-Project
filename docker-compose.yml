@@ -4,10 +4,10 @@ services:
   mcp:
     build: .
     command: ["python", "-m", "mcp_server.server"]
-    env_file:
-      - path: .env
-        required: false
-    environment:
+    environment:  # values from the shell or .env (compose reads it), works with docker-compose v1 too
+      EM_PROVIDER: ${EM_PROVIDER:-mock}
+      EM_DATA_GO_KR_KEY: ${EM_DATA_GO_KR_KEY:-}
+      EM_DATA_GO_KR_KEY_PHARMACY: ${EM_DATA_GO_KR_KEY_PHARMACY:-}
       EM_MCP_HOST: 0.0.0.0  # reachable from the api container; not published to the host
       EM_MCP_PORT: "8001"
     restart: unless-stopped
