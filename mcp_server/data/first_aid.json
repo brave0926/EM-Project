@@ -65,6 +65,70 @@
    "checked": "2026-11-03",
    "verified": true,
    "note": null
+  },
+  "nhs_head_injury": {
+   "publisher": "NHS",
+   "title": "Head injury and concussion",
+   "url": "https://www.nhs.uk/conditions/head-injury-and-concussion/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_eye_injuries": {
+   "publisher": "NHS",
+   "title": "Eye injuries",
+   "url": "https://www.nhs.uk/conditions/eye-injuries/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_bites": {
+   "publisher": "NHS",
+   "title": "Animal and human bites",
+   "url": "https://www.nhs.uk/conditions/animal-and-human-bites/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_snake_bites": {
+   "publisher": "NHS",
+   "title": "Snake bites",
+   "url": "https://www.nhs.uk/conditions/snake-bites/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_anaphylaxis": {
+   "publisher": "NHS",
+   "title": "Anaphylaxis",
+   "url": "https://www.nhs.uk/conditions/anaphylaxis/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": "page review date (21 Jun 2026) has passed"
+  },
+  "brc_choking": {
+   "publisher": "British Red Cross",
+   "title": "Choking (adult)",
+   "url": "https://www.redcross.org.uk/first-aid/learn-first-aid/choking",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "sja_electric_shock": {
+   "publisher": "St John Ambulance",
+   "title": "Electric shock",
+   "url": "https://www.sja.org.uk/first-aid-advice/electrocution/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "brc_drowning": {
+   "publisher": "British Red Cross",
+   "title": "Drowning",
+   "url": "https://www.redcross.org.uk/first-aid/learn-first-aid/drowning",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
   }
  },
  "common": {
@@ -869,6 +933,1208 @@
      }
     }
    ],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "head_injury": {
+   "kind": "minimal",
+   "sources": [
+    "nhs_head_injury"
+   ],
+   "steps": [
+    {
+     "id": "head_injury.go_er",
+     "text": {
+      "en": "Go to the nearest ER now. Call 119 if you are unsure or it gets worse; do not drive yourself.",
+      "ru": "Немедленно езжайте в ближайшее приёмное отделение. Если сомневаетесь или стало хуже, звоните 119; не садитесь за руль сами.",
+      "zh": "立即前往最近的急诊室。如有疑问或情况加重，请拨打119；不要自己开车。",
+      "ko": "지금 가장 가까운 응급실로 가세요. 확실하지 않거나 나빠지면 119에 전화하고, 직접 운전하지 마세요."
+     }
+    },
+    {
+     "id": "head_injury.rest",
+     "text": {
+      "en": "Keep the person still and resting, and watch them closely.",
+      "ru": "Пусть человек спокойно лежит или сидит; внимательно наблюдайте за ним.",
+      "zh": "让患者保持静止休息，并密切观察。",
+      "ko": "환자가 움직이지 않고 쉬게 하며 주의 깊게 지켜보세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "head_injury.no_drive",
+     "text": {
+      "en": "Do not let them drive, drink alcohol or take sleeping pills.",
+      "ru": "Не позволяйте садиться за руль, пить алкоголь или принимать снотворное.",
+      "zh": "不要让患者开车、饮酒或服用安眠药。",
+      "ko": "운전하거나 술을 마시거나 수면제를 먹지 않게 하세요."
+     }
+    },
+    {
+     "id": "head_injury.not_alone",
+     "text": {
+      "en": "Do not leave the person alone.",
+      "ru": "Не оставляйте человека одного.",
+      "zh": "不要让患者独处。",
+      "ko": "환자를 혼자 두지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "head_injury.unresponsive",
+     "text": {
+      "en": "The person stops responding or breathing normally: call 119 at once.",
+      "ru": "Человек перестал реагировать или нормально дышать — сразу звоните 119.",
+      "zh": "患者失去反应或无法正常呼吸：立即拨打119。",
+      "ko": "환자가 반응이 없거나 정상적으로 숨을 쉬지 않으면 즉시 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "unconscious",
+       "unresponsive",
+       "not breathing",
+       "passed out",
+       "won't wake"
+      ],
+      "ru": [
+       "без сознани",
+       "не дыш",
+       "не реагир",
+       "не просыпа"
+      ],
+      "cjk": [
+       "昏迷",
+       "没有呼吸",
+       "沒有呼吸",
+       "不省人事",
+       "叫不醒",
+       "의식이없",
+       "의식을잃",
+       "숨을안",
+       "숨을쉬지",
+       "기절"
+      ]
+     }
+    },
+    {
+     "id": "head_injury.red_flags",
+     "text": {
+      "en": "Fits, being sick, clear fluid from the ears or nose, problems seeing, speaking or walking, or new weakness.",
+      "ru": "Судороги, рвота, прозрачная жидкость из ушей или носа, нарушения зрения, речи или ходьбы, новая слабость.",
+      "zh": "抽搐、呕吐、耳朵或鼻子流出清水样液体、视力、说话或行走出现问题，或新出现无力。",
+      "ko": "경련, 구토, 귀나 코에서 맑은 액체가 나옴, 보기·말하기·걷기 문제, 새로 생긴 힘 빠짐."
+     },
+     "match": {
+      "en": [
+       "vomit",
+       "vomiting",
+       "fit",
+       "seizure",
+       "clear fluid",
+       "can't see",
+       "blurred",
+       "slurred",
+       "weakness",
+       "confused"
+      ],
+      "ru": [
+       "рвот",
+       "судорог",
+       "жидкост",
+       "не видит",
+       "невнятн",
+       "слабост",
+       "спутан"
+      ],
+      "cjk": [
+       "呕吐",
+       "嘔吐",
+       "抽搐",
+       "流出",
+       "看不清",
+       "说话不清",
+       "无力",
+       "구토",
+       "토해",
+       "경련",
+       "맑은액체",
+       "안보",
+       "발음",
+       "힘이없"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "eye_injury": {
+   "kind": "minimal",
+   "sources": [
+    "nhs_eye_injuries"
+   ],
+   "steps": [
+    {
+     "id": "eye_injury.go_er",
+     "text": {
+      "en": "Go to the nearest ER now. Call 119 if you are unsure or it gets worse; do not drive yourself.",
+      "ru": "Немедленно езжайте в ближайшее приёмное отделение. Если сомневаетесь или стало хуже, звоните 119; не садитесь за руль сами.",
+      "zh": "立即前往最近的急诊室。如有疑问或情况加重，请拨打119；不要自己开车。",
+      "ko": "지금 가장 가까운 응급실로 가세요. 확실하지 않거나 나빠지면 119에 전화하고, 직접 운전하지 마세요."
+     }
+    },
+    {
+     "id": "eye_injury.rinse",
+     "text": {
+      "en": "If a chemical got in the eye, keep rinsing it with clean, lukewarm running water while you wait or travel, holding the eye open.",
+      "ru": "Если в глаз попало химическое вещество, промывайте его чистой тёплой проточной водой, держа глаз открытым, пока ждёте помощь или едете.",
+      "zh": "如果化学品进入眼睛，在等待或前往医院途中，用干净的温水持续冲洗，并保持眼睛睁开。",
+      "ko": "화학물질이 눈에 들어갔다면 기다리거나 이동하는 동안 눈을 뜬 채 깨끗한 미지근한 흐르는 물로 계속 헹구세요."
+     }
+    },
+    {
+     "id": "eye_injury.container",
+     "text": {
+      "en": "Take the chemical's container with you.",
+      "ru": "Возьмите с собой упаковку вещества.",
+      "zh": "带上该化学品的容器。",
+      "ko": "그 화학물질의 용기를 가져가세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "eye_injury.no_remove",
+     "text": {
+      "en": "Do not try to remove anything stuck in the eye.",
+      "ru": "Не пытайтесь извлечь предмет, застрявший в глазу.",
+      "zh": "不要试图取出扎在眼睛里的东西。",
+      "ko": "눈에 박힌 것을 빼려고 하지 마세요."
+     }
+    },
+    {
+     "id": "eye_injury.no_rub",
+     "text": {
+      "en": "Do not touch or rub the eye.",
+      "ru": "Не трогайте и не трите глаз.",
+      "zh": "不要触摸或揉眼睛。",
+      "ko": "눈을 만지거나 비비지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "eye_injury.serious",
+     "text": {
+      "en": "A chemical such as bleach or oven cleaner, a sharp object, a high-speed impact, changes in sight, or severe pain.",
+      "ru": "Химикат (например, отбеливатель), острый предмет, сильный удар, изменения зрения или сильная боль.",
+      "zh": "漂白剂等化学品、尖锐物体、高速撞击、视力变化或剧烈疼痛。",
+      "ko": "표백제 같은 화학물질, 날카로운 물체, 강한 충격, 시력 변화 또는 심한 통증."
+     },
+     "match": {
+      "en": [
+       "chemical",
+       "bleach",
+       "sharp",
+       "glass",
+       "can't see",
+       "blurred",
+       "severe pain"
+      ],
+      "ru": [
+       "хими",
+       "отбел",
+       "остр",
+       "стекл",
+       "не вижу",
+       "не видит",
+       "сильн\\w* бол"
+      ],
+      "cjk": [
+       "化学",
+       "化學",
+       "漂白",
+       "尖",
+       "玻璃",
+       "看不见",
+       "看不清",
+       "剧痛",
+       "화학",
+       "표백",
+       "날카",
+       "유리",
+       "안보",
+       "심한통증"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "bite": {
+   "kind": "minimal",
+   "sources": [
+    "nhs_bites",
+    "nhs_snake_bites"
+   ],
+   "steps": [
+    {
+     "id": "bite.go_er",
+     "text": {
+      "en": "Go to the nearest ER now. Call 119 if you are unsure or it gets worse; do not drive yourself.",
+      "ru": "Немедленно езжайте в ближайшее приёмное отделение. Если сомневаетесь или стало хуже, звоните 119; не садитесь за руль сами.",
+      "zh": "立即前往最近的急诊室。如有疑问或情况加重，请拨打119；不要自己开车。",
+      "ko": "지금 가장 가까운 응급실로 가세요. 확실하지 않거나 나빠지면 119에 전화하고, 직접 운전하지 마세요."
+     }
+    },
+    {
+     "id": "bite.still",
+     "text": {
+      "en": "Keep the bitten part as still as possible and remove rings or tight clothing near it.",
+      "ru": "Держите укушенную часть тела как можно неподвижнее и снимите кольца и тесную одежду рядом с укусом.",
+      "zh": "让被咬部位尽量保持不动，并取下附近的戒指或紧身衣物。",
+      "ko": "물린 부위를 최대한 움직이지 말고, 근처의 반지나 꽉 끼는 옷을 벗기세요."
+     }
+    },
+    {
+     "id": "bite.press",
+     "text": {
+      "en": "If it is bleeding heavily, press a clean cloth firmly on it.",
+      "ru": "Если сильно кровоточит, плотно прижмите чистую ткань.",
+      "zh": "如果大量出血，用干净的布用力按压。",
+      "ko": "피가 많이 나면 깨끗한 천으로 세게 누르세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "bite.no_snake",
+     "text": {
+      "en": "Do not go near the snake or try to catch it; do not suck or cut the bite.",
+      "ru": "Не приближайтесь к змее и не пытайтесь её поймать; не отсасывайте яд и не надрезайте место укуса.",
+      "zh": "不要靠近或试图抓蛇；不要吸或切开咬伤处。",
+      "ko": "뱀에게 다가가거나 잡으려 하지 말고, 물린 곳을 빨거나 째지 마세요."
+     }
+    },
+    {
+     "id": "bite.no_tie",
+     "text": {
+      "en": "Do not tie anything tightly around the bite.",
+      "ru": "Не перетягивайте место укуса.",
+      "zh": "不要在咬伤处周围紧紧捆扎任何东西。",
+      "ko": "물린 곳 주위를 꽉 묶지 마세요."
+     }
+    },
+    {
+     "id": "bite.no_medicine",
+     "text": {
+      "en": "Do not give any medicine unless the 119 dispatcher or a doctor tells you to.",
+      "ru": "Не давайте никаких лекарств, если этого не сказал диспетчер 119 или врач.",
+      "zh": "除非119调度员或医生要求，否则不要给任何药物。",
+      "ko": "119 상황실이나 의사가 지시하지 않는 한 어떤 약도 주지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "bite.snake",
+     "text": {
+      "en": "Any snake bite: call 119.",
+      "ru": "Любой укус змеи — звоните 119.",
+      "zh": "任何蛇咬伤：请拨打119。",
+      "ko": "뱀에 물렸다면 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "snake",
+       "snakebite",
+       "viper"
+      ],
+      "ru": [
+       "зме",
+       "гадюк"
+      ],
+      "cjk": [
+       "蛇",
+       "뱀",
+       "독사"
+      ]
+     }
+    },
+    {
+     "id": "bite.serious",
+     "text": {
+      "en": "The bite is deep or large, bleeds heavily, or is on the face, head, hands or feet.",
+      "ru": "Укус глубокий или большой, сильно кровоточит или находится на лице, голове, руках или ногах.",
+      "zh": "咬伤很深或很大、大量出血，或位于脸部、头部、手或脚。",
+      "ko": "물린 상처가 깊거나 크거나, 피가 많이 나거나, 얼굴·머리·손·발에 있습니다."
+     },
+     "match": {
+      "en": [
+       "deep",
+       "large",
+       "face",
+       "head",
+       "hand",
+       "foot",
+       "bleeding heavily"
+      ],
+      "ru": [
+       "глубок",
+       "больш",
+       "лиц",
+       "голов",
+       "рук",
+       "ног"
+      ],
+      "cjk": [
+       "很深",
+       "脸",
+       "臉",
+       "头",
+       "頭",
+       "手",
+       "脚",
+       "깊",
+       "얼굴",
+       "머리",
+       "손에",
+       "손을",
+       "발에",
+       "발을"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "allergy": {
+   "kind": "minimal",
+   "sources": [
+    "nhs_anaphylaxis"
+   ],
+   "steps": [
+    {
+     "id": "allergy.go_er",
+     "text": {
+      "en": "Go to the nearest ER now. Call 119 if you are unsure or it gets worse; do not drive yourself.",
+      "ru": "Немедленно езжайте в ближайшее приёмное отделение. Если сомневаетесь или стало хуже, звоните 119; не садитесь за руль сами.",
+      "zh": "立即前往最近的急诊室。如有疑问或情况加重，请拨打119；不要自己开车。",
+      "ko": "지금 가장 가까운 응급실로 가세요. 확실하지 않거나 나빠지면 119에 전화하고, 직접 운전하지 마세요."
+     }
+    },
+    {
+     "id": "allergy.autoinjector",
+     "text": {
+      "en": "If the person has their own emergency allergy auto-injector, they should use it as instructed on it; tell the dispatcher.",
+      "ru": "Если у человека есть свой экстренный автоинжектор от аллергии, пусть применит его по инструкции на нём; сообщите диспетчеру.",
+      "zh": "如果患者随身携带自己的过敏急救自动注射笔，应按笔上的说明使用，并告诉调度员。",
+      "ko": "환자가 본인의 알레르기 응급용 자동주사기를 가지고 있다면 표시된 사용법대로 사용하게 하고 상황실에 알리세요."
+     }
+    },
+    {
+     "id": "allergy.position",
+     "text": {
+      "en": "Let them lie down with legs raised; if breathing is hard, let them sit up slowly.",
+      "ru": "Уложите человека с приподнятыми ногами; если трудно дышать, помогите медленно сесть.",
+      "zh": "让患者躺下并抬高双腿；如果呼吸困难，让他慢慢坐起来。",
+      "ko": "다리를 올린 채 눕히고, 숨쉬기 힘들면 천천히 앉게 하세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "allergy.no_stand",
+     "text": {
+      "en": "Do not let them stand up or walk, even if they feel better.",
+      "ru": "Не позволяйте вставать или ходить, даже если стало лучше.",
+      "zh": "即使感觉好转，也不要让患者站立或走动。",
+      "ko": "나아진 것 같아도 일어서거나 걷지 않게 하세요."
+     }
+    },
+    {
+     "id": "allergy.not_alone",
+     "text": {
+      "en": "Do not leave the person alone.",
+      "ru": "Не оставляйте человека одного.",
+      "zh": "不要让患者独处。",
+      "ko": "환자를 혼자 두지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "allergy.airway",
+     "text": {
+      "en": "Swelling of the lips, mouth, tongue or throat, a tight throat, or fast or difficult breathing: call 119.",
+      "ru": "Отёк губ, рта, языка или горла, сдавленность в горле, частое или затруднённое дыхание — звоните 119.",
+      "zh": "嘴唇、口腔、舌头或喉咙肿胀，喉咙发紧，或呼吸急促、困难：请拨打119。",
+      "ko": "입술·입·혀·목이 붓거나, 목이 조이거나, 숨이 빠르거나 힘들면 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "swollen",
+       "swelling",
+       "tight throat",
+       "throat is tight",
+       "hard to breathe",
+       "difficulty breathing"
+      ],
+      "ru": [
+       "отек",
+       "опух",
+       "трудно дышать",
+       "сдавл"
+      ],
+      "cjk": [
+       "肿",
+       "腫",
+       "喉咙发紧",
+       "呼吸困难",
+       "붓",
+       "부었",
+       "부어",
+       "목이조",
+       "숨쉬기"
+      ]
+     }
+    },
+    {
+     "id": "allergy.faint",
+     "text": {
+      "en": "Pale, blue or grey skin, confusion, drowsiness or fainting.",
+      "ru": "Бледная, синюшная или серая кожа, спутанность, сонливость или обморок.",
+      "zh": "皮肤苍白、发青或发灰，意识混乱、嗜睡或晕倒。",
+      "ko": "피부가 창백하거나 파랗거나 회색으로 변함, 혼란, 졸림 또는 실신."
+     },
+     "match": {
+      "en": [
+       "pale",
+       "blue",
+       "grey",
+       "gray",
+       "drowsy",
+       "faint",
+       "fainted",
+       "confused"
+      ],
+      "ru": [
+       "бледн",
+       "синюш",
+       "сонлив",
+       "обморок",
+       "спутан"
+      ],
+      "cjk": [
+       "苍白",
+       "蒼白",
+       "发青",
+       "嗜睡",
+       "晕倒",
+       "暈倒",
+       "창백",
+       "파랗",
+       "졸려",
+       "기절",
+       "실신"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "choking": {
+   "kind": "minimal",
+   "sources": [
+    "brc_choking"
+   ],
+   "steps": [
+    {
+     "id": "choking.call_119",
+     "text": {
+      "en": "Call 119 now and follow the dispatcher's instructions.",
+      "ru": "Немедленно позвоните 119 и следуйте указаниям диспетчера.",
+      "zh": "立即拨打119，并听从调度员的指示。",
+      "ko": "지금 119에 전화하고 상황실 안내를 따르세요."
+     }
+    },
+    {
+     "id": "choking.cough",
+     "text": {
+      "en": "If they can still cough, encourage them to keep coughing.",
+      "ru": "Если человек может кашлять, побуждайте его продолжать кашлять.",
+      "zh": "如果患者还能咳嗽，鼓励他继续用力咳嗽。",
+      "ko": "기침을 할 수 있다면 계속 기침하도록 하세요."
+     }
+    },
+    {
+     "id": "choking.stay",
+     "text": {
+      "en": "Stay with the person, talk to them and keep them calm.",
+      "ru": "Оставайтесь рядом с человеком, говорите с ним и успокаивайте.",
+      "zh": "陪在患者身边，和他说话，让他保持冷静。",
+      "ko": "환자 곁에 머물며 말을 걸고 안심시키세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "choking.no_food",
+     "text": {
+      "en": "Do not give food or drink.",
+      "ru": "Не давайте еду и питьё.",
+      "zh": "不要给患者吃东西或喝水。",
+      "ko": "음식이나 물을 주지 마세요."
+     }
+    },
+    {
+     "id": "choking.not_alone",
+     "text": {
+      "en": "Do not leave the person alone.",
+      "ru": "Не оставляйте человека одного.",
+      "zh": "不要让患者独处。",
+      "ko": "환자를 혼자 두지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "choking.unresponsive",
+     "text": {
+      "en": "They cannot speak, breathe or cough, or they become unresponsive: tell the dispatcher at once.",
+      "ru": "Не может говорить, дышать или кашлять, или потерял сознание — сразу сообщите диспетчеру.",
+      "zh": "无法说话、呼吸或咳嗽，或失去反应：立即告诉调度员。",
+      "ko": "말하거나 숨쉬거나 기침을 못 하거나 반응이 없으면 즉시 상황실에 알리세요."
+     },
+     "match": {
+      "en": [
+       "can't speak",
+       "cannot speak",
+       "can't breathe",
+       "cannot breathe",
+       "can't cough",
+       "unconscious",
+       "unresponsive"
+      ],
+      "ru": [
+       "не может говорить",
+       "не может дышать",
+       "не может кашлять",
+       "без сознани"
+      ],
+      "cjk": [
+       "不能说话",
+       "无法说话",
+       "不能呼吸",
+       "无法呼吸",
+       "咳不出",
+       "昏迷",
+       "말을못",
+       "숨을못",
+       "기침을못",
+       "의식이없"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "fracture": {
+   "kind": "minimal",
+   "sources": [
+    "nhs_broken_arm"
+   ],
+   "steps": [
+    {
+     "id": "fracture.go_er",
+     "text": {
+      "en": "Go to the nearest ER now. Call 119 if you are unsure or it gets worse; do not drive yourself.",
+      "ru": "Немедленно езжайте в ближайшее приёмное отделение. Если сомневаетесь или стало хуже, звоните 119; не садитесь за руль сами.",
+      "zh": "立即前往最近的急诊室。如有疑问或情况加重，请拨打119；不要自己开车。",
+      "ko": "지금 가장 가까운 응급실로 가세요. 확실하지 않거나 나빠지면 119에 전화하고, 직접 운전하지 마세요."
+     }
+    },
+    {
+     "id": "fracture.still",
+     "text": {
+      "en": "Keep the injured part still and supported, for example with a towel or a sling.",
+      "ru": "Держите повреждённую часть неподвижной и поддерживайте её, например полотенцем или косынкой.",
+      "zh": "让受伤部位保持不动并给予支撑，例如用毛巾或三角巾。",
+      "ko": "다친 부위를 움직이지 않게 수건이나 삼각건 등으로 받쳐 주세요."
+     }
+    },
+    {
+     "id": "fracture.jewellery",
+     "text": {
+      "en": "Remove rings or watches near the injury.",
+      "ru": "Снимите кольца или часы рядом с травмой.",
+      "zh": "取下受伤处附近的戒指或手表。",
+      "ko": "다친 곳 근처의 반지나 시계를 빼세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "fracture.no_food",
+     "text": {
+      "en": "Do not eat or drink, in case an operation is needed.",
+      "ru": "Не ешьте и не пейте — может понадобиться операция.",
+      "zh": "不要吃喝东西，以防需要手术。",
+      "ko": "수술이 필요할 수 있으니 먹거나 마시지 마세요."
+     }
+    },
+    {
+     "id": "fracture.no_use",
+     "text": {
+      "en": "Do not try to use the injured part.",
+      "ru": "Не пытайтесь нагружать повреждённую часть тела.",
+      "zh": "不要尝试使用受伤部位。",
+      "ko": "다친 부위를 쓰려고 하지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "fracture.serious",
+     "text": {
+      "en": "A bone is sticking out, the limb is at an odd angle or changes colour, it is numb or tingling, or there is heavy bleeding: call 119.",
+      "ru": "Торчит кость, конечность под странным углом или изменила цвет, онемение или покалывание, сильное кровотечение — звоните 119.",
+      "zh": "骨头外露、肢体弯成异常角度或变色、麻木刺痛，或大量出血：请拨打119。",
+      "ko": "뼈가 튀어나왔거나, 팔다리가 이상한 각도로 꺾였거나 색이 변했거나, 저리거나 따끔거리거나, 피가 많이 나면 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "sticking out",
+       "bone out",
+       "odd angle",
+       "deformed",
+       "numb",
+       "tingling",
+       "bleeding heavily"
+      ],
+      "ru": [
+       "торчит",
+       "кость наружу",
+       "неестественн",
+       "деформ",
+       "онемел",
+       "покалыва"
+      ],
+      "cjk": [
+       "露出",
+       "外露",
+       "变形",
+       "畸形",
+       "麻木",
+       "튀어나",
+       "꺾였",
+       "저려",
+       "저림",
+       "따끔"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "electric_shock": {
+   "kind": "minimal",
+   "sources": [
+    "sja_electric_shock"
+   ],
+   "steps": [
+    {
+     "id": "electric_shock.power_off",
+     "text": {
+      "en": "Do not touch the person until the power is off: switch it off or unplug it if you safely can.",
+      "ru": "Не прикасайтесь к человеку, пока не отключено электричество: выключите его или выдерните вилку, если это безопасно.",
+      "zh": "在断电前不要触碰患者：如能安全操作，请关闭电源或拔掉插头。",
+      "ko": "전원이 꺼질 때까지 환자를 만지지 마세요. 안전하다면 전원을 끄거나 플러그를 뽑으세요."
+     }
+    },
+    {
+     "id": "electric_shock.call_119",
+     "text": {
+      "en": "Call 119 now and follow the dispatcher's instructions.",
+      "ru": "Немедленно позвоните 119 и следуйте указаниям диспетчера.",
+      "zh": "立即拨打119，并听从调度员的指示。",
+      "ko": "지금 119에 전화하고 상황실 안내를 따르세요."
+     }
+    },
+    {
+     "id": "electric_shock.stay",
+     "text": {
+      "en": "Stay with the person, talk to them and keep them calm.",
+      "ru": "Оставайтесь рядом с человеком, говорите с ним и успокаивайте.",
+      "zh": "陪在患者身边，和他说话，让他保持冷静。",
+      "ko": "환자 곁에 머물며 말을 걸고 안심시키세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "electric_shock.no_touch",
+     "text": {
+      "en": "Do not touch the person while they are still in contact with the electricity.",
+      "ru": "Не трогайте человека, пока он касается источника тока.",
+      "zh": "患者仍接触电源时，不要触碰他。",
+      "ko": "환자가 아직 전기에 닿아 있는 동안에는 만지지 마세요."
+     }
+    },
+    {
+     "id": "electric_shock.no_food",
+     "text": {
+      "en": "Do not give food or drink.",
+      "ru": "Не давайте еду и питьё.",
+      "zh": "不要给患者吃东西或喝水。",
+      "ko": "음식이나 물을 주지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "electric_shock.unresponsive",
+     "text": {
+      "en": "The person stops responding or breathing normally: call 119 at once.",
+      "ru": "Человек перестал реагировать или нормально дышать — сразу звоните 119.",
+      "zh": "患者失去反应或无法正常呼吸：立即拨打119。",
+      "ko": "환자가 반응이 없거나 정상적으로 숨을 쉬지 않으면 즉시 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "unconscious",
+       "unresponsive",
+       "not breathing",
+       "passed out",
+       "won't wake"
+      ],
+      "ru": [
+       "без сознани",
+       "не дыш",
+       "не реагир",
+       "не просыпа"
+      ],
+      "cjk": [
+       "昏迷",
+       "没有呼吸",
+       "沒有呼吸",
+       "不省人事",
+       "叫不醒",
+       "의식이없",
+       "의식을잃",
+       "숨을안",
+       "숨을쉬지",
+       "기절"
+      ]
+     }
+    },
+    {
+     "id": "electric_shock.burn",
+     "text": {
+      "en": "There is a burn: the person needs to be checked in hospital.",
+      "ru": "Есть ожог — человека нужно осмотреть в больнице.",
+      "zh": "有烧伤：患者需要到医院检查。",
+      "ko": "화상이 있으면 병원에서 검사를 받아야 합니다."
+     },
+     "match": {
+      "en": [
+       "burn",
+       "burned",
+       "burnt"
+      ],
+      "ru": [
+       "ожог",
+       "обожж"
+      ],
+      "cjk": [
+       "烧伤",
+       "燒傷",
+       "灼伤",
+       "화상"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "drowning": {
+   "kind": "minimal",
+   "sources": [
+    "brc_drowning"
+   ],
+   "steps": [
+    {
+     "id": "drowning.safety",
+     "text": {
+      "en": "Do not put yourself at risk: shout for help and call 119.",
+      "ru": "Не рискуйте собой: зовите на помощь и звоните 119.",
+      "zh": "不要让自己陷入危险：大声呼救并拨打119。",
+      "ko": "자신을 위험에 빠뜨리지 말고, 도움을 요청하고 119에 전화하세요."
+     }
+    },
+    {
+     "id": "drowning.dispatcher",
+     "text": {
+      "en": "Once the person is out of the water, follow the 119 dispatcher's instructions.",
+      "ru": "Когда человек вне воды, следуйте указаниям диспетчера 119.",
+      "zh": "患者离开水后，听从119调度员的指示。",
+      "ko": "물 밖으로 나오면 119 상황실의 안내를 따르세요."
+     }
+    },
+    {
+     "id": "drowning.warm",
+     "text": {
+      "en": "Keep them warm with dry clothes or a blanket.",
+      "ru": "Согрейте человека сухой одеждой или одеялом.",
+      "zh": "用干衣服或毯子为患者保暖。",
+      "ko": "마른 옷이나 담요로 따뜻하게 해 주세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "drowning.no_enter",
+     "text": {
+      "en": "Do not go into the water if it is not safe.",
+      "ru": "Не заходите в воду, если это небезопасно.",
+      "zh": "如果不安全，不要下水。",
+      "ko": "안전하지 않다면 물에 들어가지 마세요."
+     }
+    },
+    {
+     "id": "drowning.no_food",
+     "text": {
+      "en": "Do not give food or drink.",
+      "ru": "Не давайте еду и питьё.",
+      "zh": "不要给患者吃东西或喝水。",
+      "ko": "음식이나 물을 주지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "drowning.unresponsive",
+     "text": {
+      "en": "The person stops responding or breathing normally: call 119 at once.",
+      "ru": "Человек перестал реагировать или нормально дышать — сразу звоните 119.",
+      "zh": "患者失去反应或无法正常呼吸：立即拨打119。",
+      "ko": "환자가 반응이 없거나 정상적으로 숨을 쉬지 않으면 즉시 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "unconscious",
+       "unresponsive",
+       "not breathing",
+       "passed out",
+       "won't wake"
+      ],
+      "ru": [
+       "без сознани",
+       "не дыш",
+       "не реагир",
+       "не просыпа"
+      ],
+      "cjk": [
+       "昏迷",
+       "没有呼吸",
+       "沒有呼吸",
+       "不省人事",
+       "叫不醒",
+       "의식이없",
+       "의식을잃",
+       "숨을안",
+       "숨을쉬지",
+       "기절"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "heavy_bleeding": {
+   "kind": "minimal",
+   "sources": [
+    "brc_bleeding_heavily"
+   ],
+   "steps": [
+    {
+     "id": "heavy_bleeding.press",
+     "text": {
+      "en": "Press firmly on the wound with whatever clean cloth is available.",
+      "ru": "Сильно прижмите рану любой чистой тканью, которая есть под рукой.",
+      "zh": "用手边任何干净的布用力按压伤口。",
+      "ko": "가까이 있는 깨끗한 천으로 상처를 세게 누르세요."
+     }
+    },
+    {
+     "id": "heavy_bleeding.call_119",
+     "text": {
+      "en": "Call 119 now and follow the dispatcher's instructions.",
+      "ru": "Немедленно позвоните 119 и следуйте указаниям диспетчера.",
+      "zh": "立即拨打119，并听从调度员的指示。",
+      "ko": "지금 119에 전화하고 상황실 안내를 따르세요."
+     }
+    },
+    {
+     "id": "heavy_bleeding.keep",
+     "text": {
+      "en": "Keep pressing until help arrives; if blood soaks through, replace the pad with a fresh one and keep pressing.",
+      "ru": "Давите, пока не приедет помощь; если ткань пропиталась кровью, замените её свежей и продолжайте давить.",
+      "zh": "持续按压直到救援到达；如果血浸透布料，换一块新的并继续按压。",
+      "ko": "도움이 올 때까지 계속 누르고, 피가 배어 나오면 새 천으로 바꿔 계속 누르세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "heavy_bleeding.no_remove",
+     "text": {
+      "en": "Do not remove an object stuck in the wound; press around it.",
+      "ru": "Не вынимайте предмет из раны — давите вокруг него.",
+      "zh": "不要拔出伤口里的物体，在其周围按压。",
+      "ko": "상처에 박힌 물체를 빼지 말고 그 주위를 누르세요."
+     }
+    },
+    {
+     "id": "heavy_bleeding.no_wash",
+     "text": {
+      "en": "Do not wash a wound that is bleeding heavily.",
+      "ru": "Не промывайте сильно кровоточащую рану.",
+      "zh": "不要清洗大量出血的伤口。",
+      "ko": "피가 많이 나는 상처는 씻지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "heavy_bleeding.shock",
+     "text": {
+      "en": "Pale, cold or clammy skin, dizziness or fainting: lay them down, raise their legs and tell the dispatcher.",
+      "ru": "Бледная, холодная или липкая кожа, головокружение или обморок — уложите человека, приподнимите ноги и сообщите диспетчеру.",
+      "zh": "皮肤苍白、发冷或湿冷，头晕或晕倒：让患者躺下、抬高双腿，并告诉调度员。",
+      "ko": "피부가 창백하거나 차갑고 축축하거나, 어지럽거나 쓰러지면 눕히고 다리를 올린 뒤 상황실에 알리세요."
+     },
+     "match": {
+      "en": [
+       "pale",
+       "cold",
+       "clammy",
+       "dizzy",
+       "faint",
+       "fainted"
+      ],
+      "ru": [
+       "бледн",
+       "холодн",
+       "липк",
+       "головокруж",
+       "обморок"
+      ],
+      "cjk": [
+       "苍白",
+       "蒼白",
+       "发冷",
+       "湿冷",
+       "头晕",
+       "頭暈",
+       "晕倒",
+       "창백",
+       "차갑",
+       "식은땀",
+       "어지러",
+       "기절"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "generic": {
+   "kind": "generic",
+   "sources": [
+    "nhs_when_ae",
+    "brc_unresponsive_breathing"
+   ],
+   "steps": [
+    {
+     "id": "generic.stay",
+     "text": {
+      "en": "Stay with the person, talk to them and keep them calm.",
+      "ru": "Оставайтесь рядом с человеком, говорите с ним и успокаивайте.",
+      "zh": "陪在患者身边，和他说话，让他保持冷静。",
+      "ko": "환자 곁에 머물며 말을 걸고 안심시키세요."
+     }
+    },
+    {
+     "id": "generic.watch",
+     "text": {
+      "en": "Watch their breathing and whether they respond to you.",
+      "ru": "Следите за дыханием и за тем, реагирует ли человек на вас.",
+      "zh": "观察患者的呼吸以及是否对你有反应。",
+      "ko": "숨을 잘 쉬는지, 말에 반응하는지 지켜보세요."
+     }
+    },
+    {
+     "id": "generic.go_er",
+     "text": {
+      "en": "Go to the ER or call 119 if it gets worse or you are unsure.",
+      "ru": "Если стало хуже или вы не уверены, езжайте в приёмное отделение или звоните 119.",
+      "zh": "如果情况加重或不确定，请前往急诊室或拨打119。",
+      "ko": "나빠지거나 확실하지 않으면 응급실로 가거나 119에 전화하세요."
+     }
+    },
+    {
+     "id": "generic.pharmacist",
+     "text": {
+      "en": "Ask a pharmacist before using any product.",
+      "ru": "Прежде чем использовать любое средство, посоветуйтесь с фармацевтом.",
+      "zh": "使用任何产品前请先咨询药剂师。",
+      "ko": "어떤 제품이든 사용하기 전에 약사에게 문의하세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "generic.no_food",
+     "text": {
+      "en": "Do not give food or drink.",
+      "ru": "Не давайте еду и питьё.",
+      "zh": "不要给患者吃东西或喝水。",
+      "ko": "음식이나 물을 주지 마세요."
+     }
+    },
+    {
+     "id": "generic.no_drive",
+     "text": {
+      "en": "Do not drive yourself to the ER; ask someone to take you or call 119.",
+      "ru": "Не садитесь за руль сами; попросите кого-нибудь отвезти вас или звоните 119.",
+      "zh": "不要自己开车去急诊室，请别人送你或拨打119。",
+      "ko": "응급실에 직접 운전해서 가지 말고, 다른 사람에게 부탁하거나 119에 전화하세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "generic.unresponsive",
+     "text": {
+      "en": "The person stops responding or breathing normally: call 119 at once.",
+      "ru": "Человек перестал реагировать или нормально дышать — сразу звоните 119.",
+      "zh": "患者失去反应或无法正常呼吸：立即拨打119。",
+      "ko": "환자가 반응이 없거나 정상적으로 숨을 쉬지 않으면 즉시 119에 전화하세요."
+     },
+     "match": {
+      "en": [
+       "unconscious",
+       "unresponsive",
+       "not breathing",
+       "passed out",
+       "won't wake"
+      ],
+      "ru": [
+       "без сознани",
+       "не дыш",
+       "не реагир",
+       "не просыпа"
+      ],
+      "cjk": [
+       "昏迷",
+       "没有呼吸",
+       "沒有呼吸",
+       "不省人事",
+       "叫不醒",
+       "의식이없",
+       "의식을잃",
+       "숨을안",
+       "숨을쉬지",
+       "기절"
+      ]
+     }
+    },
+    {
+     "id": "generic.worse",
+     "text": {
+      "en": "Symptoms get worse quickly, or you are not sure what to do.",
+      "ru": "Симптомы быстро ухудшаются, или вы не знаете, что делать.",
+      "zh": "症状迅速加重，或你不确定该怎么做。",
+      "ko": "증상이 빠르게 나빠지거나 어떻게 해야 할지 모르겠습니다."
+     },
+     "match": {
+      "en": [
+       "getting worse",
+       "worse"
+      ],
+      "ru": [
+       "хуже"
+      ],
+      "cjk": [
+       "加重",
+       "恶化",
+       "나빠",
+       "심해"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
    "reviewed": {
     "en": false,
     "ru": false,

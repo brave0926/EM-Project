@@ -32,7 +32,7 @@ def test_detect_language(text, language):
         ("Мама без сознания", C.CRITICAL, S.RED),
         ("他昏迷了", C.CRITICAL, S.RED),
         ("아버지가 의식이 없어요", C.CRITICAL, S.RED),
-        ("heavy bleeding from the leg", C.CRITICAL, S.RED),  # beats plain "bleeding" (cut)
+        ("heavy bleeding from the leg", C.HEAVY_BLEEDING, S.RED),  # beats plain "bleeding" (cut); RED + 119
         # burn
         ("Severe burn on my hand, near Chungju Station, 2 AM", C.BURN, S.AMBER),
         ("small burn from the oven", C.BURN, S.GREEN),

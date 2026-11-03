@@ -155,7 +155,8 @@ def build_advice(
 ) -> str:
     """at_time: the time the user asked for (HH:MM); None means now."""
     t = _T[language]
-    lines = [t[triage.severity.value], t[triage.category.value]]
+    category_line = t.get(triage.category.value) or t["critical" if triage.severity is Severity.RED else "other"]
+    lines = [t[triage.severity.value], category_line]  # high-risk categories: the first-aid card is specific
     free = [e for e in er if e.hvec > 0]
     if free:
         lines.append(t["er"].format(name=free[0].name, km=_km(free[0].distance_km), tel=free[0].tel))

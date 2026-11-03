@@ -16,6 +16,16 @@ class Category(StrEnum):
     CUT = "cut"
     FEVER = "fever"
     MINOR = "minor"  # sore throat, runny nose: GREEN unless a severity or danger word lifts it
+    # High-risk injuries: never GREEN, never product suggestions (minimal first-aid entries).
+    HEAD_INJURY = "head_injury"  # AMBER
+    EYE_INJURY = "eye_injury"  # AMBER
+    BITE = "bite"  # AMBER; a snake bite is RED
+    ALLERGY = "allergy"  # AMBER; swelling of lips/mouth/tongue/throat or anaphylaxis is RED
+    FRACTURE = "fracture"  # AMBER (suspected broken bone, deformity)
+    CHOKING = "choking"  # RED
+    ELECTRIC_SHOCK = "electric_shock"  # RED
+    DROWNING = "drowning"  # RED
+    HEAVY_BLEEDING = "heavy_bleeding"  # RED (bleeding that does not stop)
     CRITICAL = "critical"
     OTHER = "other"
 

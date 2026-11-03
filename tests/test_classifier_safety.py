@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from backend.app.models.enums import Category, Severity
-from backend.app.services.classifier_service import classify
+from backend.app.services.classifier_service import FIXED_SEVERITY, classify
 from backend.app.services.location_service import CITY_CENTRE, STATION, YEONSU, resolve_location
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -104,7 +104,8 @@ def test_at_least_six_phrases_per_language():
 @pytest.mark.parametrize(("lang", "text"), [(lang, t) for lang in LANGS for t in CRITICAL[lang]])
 def test_critical_phrase_is_red_with_119(lang, text):
     result = classify(text)
-    assert (result.category, result.severity, result.call_119) == (Category.CRITICAL, Severity.RED, True)
+    assert (result.severity, result.call_119) == (Severity.RED, True)
+    assert result.category in {Category.CRITICAL, *[c for c, s in FIXED_SEVERITY.items() if s is Severity.RED]}
 
 
 @pytest.mark.parametrize(("lang", "text"), [(lang, t) for lang in LANGS for t in FEVER_WARNING[lang]])

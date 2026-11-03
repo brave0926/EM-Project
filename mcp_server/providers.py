@@ -63,7 +63,9 @@ _OTC: dict[Category, list[str]] = {
     Category.FEVER: ["Antipyretic / fever reducer (use as labelled)", "Oral rehydration salts", "Thermometer"],
     Category.MINOR: ["Throat lozenges (use as labelled)", "Saline nasal spray", "Thermometer"],
     Category.CRITICAL: [],  # call 119, not a pharmacy
-    Category.OTHER: ["Sterile dressing", "Saline solution", "Antiseptic solution"],
+    Category.OTHER: [],  # outside the knowledge base: no product suggestions (ask a pharmacist)
+    **{c: [] for c in (Category.HEAD_INJURY, Category.EYE_INJURY, Category.BITE, Category.ALLERGY, Category.FRACTURE,
+                       Category.CHOKING, Category.ELECTRIC_SHOCK, Category.DROWNING, Category.HEAVY_BLEEDING)},
 }
 
 
