@@ -10,7 +10,7 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 - Last commit: `feat(frontend): add a green demo chip [W6]` (with this update); before it `ba2d092 fix(triage): ...`
 - Origin: `origin/main` = last commit (pushed 2026-11-03 after N5c follow-up); local = origin
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
-- Tests: 446 passed (`uv run pytest -q`, 2026-11-03)
+- Tests: 694 passed (`uv run pytest -q`, 2026-11-03)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 - LLM: off by default; `EM_LLM=anthropic` + `ANTHROPIC_API_KEY` (`docs/llm.md`). No key in `.env` yet: real API run unverified
@@ -73,7 +73,8 @@ Not yet measured: concurrent load and a deployed server over a real network (N7)
 
 ## In progress / uncommitted
 
-- Nothing half done. Open from N5: one real run once `ANTHROPIC_API_KEY` is in `.env`: `python scripts/llm_smoke.py --all-langs`, then `EM_LLM=anthropic scripts/run_dev.sh` + `python scripts/llm_smoke.py --chips http://127.0.0.1:8000`; record latency/outcome per job here.
+- N6 first-aid agent IN PROGRESS (not pushed): done = KB + validator `bfbd2bc`, tool/client/service + LLM select_items `c73d126`, graph worker + SSE `first_aid` + /metrics `dda564d`, frontend card (headless Chrome, EN burn) in the latest feat(frontend) commit; 694 tests pass. Left: high-risk categories + generic entry (severity proposal: AMBER head_injury, eye_injury, bite (snake RED), allergy (face/throat swelling RED), fracture; RED choking, electric_shock, drowning, heavy_bleeding: awaiting user confirmation), eval/scenarios/first_aid.yaml (30 cases), docs/first_aid.md. Sources: all 16 verified 2026-11-03 (none UNVERIFIED; UK sources, 999 given as 119); all translations reviewed=false.
+- Open from N5: one real run once `ANTHROPIC_API_KEY` is in `.env`: `python scripts/llm_smoke.py --all-langs`, then `EM_LLM=anthropic scripts/run_dev.sh` + `python scripts/llm_smoke.py --chips http://127.0.0.1:8000`; record latency/outcome per job here.
 - `docs/progress_archive.md` does not exist yet (created when the log passes 10 lines).
 
 ## Next steps
