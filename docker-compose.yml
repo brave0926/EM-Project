@@ -1,5 +1,5 @@
 # docker compose up --build   -> page at http://127.0.0.1:${API_PORT:-8000}/
-# EM_PROVIDER and the data.go.kr keys come from .env (optional; mock without it).
+# EM_PROVIDER, the data.go.kr keys and the EM_LLM settings come from .env (optional; mock, no LLM without it).
 services:
   mcp:
     build: .
@@ -19,6 +19,9 @@ services:
       EM_MCP_URL: http://mcp:8001/mcp
       EM_FALLBACK_DB: /data/em_fallback.db
       EM_DEMO_CHAOS: ${EM_DEMO_CHAOS:-}  # 1 = /demo/chaos on (demo only; default off)
+      EM_LLM: ${EM_LLM:-}  # anthropic = LLM rewrite + context extraction; empty = rules/template only
+      EM_LLM_MODEL: ${EM_LLM_MODEL:-}  # empty = claude-haiku-5-5
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:
       - fallback-db:/data  # last good facility data survives restarts
     ports:
