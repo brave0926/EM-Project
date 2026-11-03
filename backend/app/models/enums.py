@@ -15,6 +15,7 @@ class Category(StrEnum):
     BURN = "burn"
     CUT = "cut"
     FEVER = "fever"
+    MINOR = "minor"  # sore throat, runny nose: GREEN unless a severity or danger word lifts it
     CRITICAL = "critical"
     OTHER = "other"
 

@@ -3,7 +3,7 @@
 Usage:
     python scripts/llm_smoke.py                          # 2 calls: one extraction, one rewrite (per language: --all-langs)
     python scripts/llm_smoke.py --chips http://127.0.0.1:8000
-        # the 16 demo chips (EN/RU/ZH/KO) through a running server started with EM_LLM=anthropic;
+        # the 20 demo chips (EN/RU/ZH/KO) through a running server started with EM_LLM=anthropic;
         # prints severity, notices and done.llm per chip
 
 Reads ANTHROPIC_API_KEY (and EM_LLM_MODEL) from the environment or .env; never prints the key.
@@ -33,13 +33,15 @@ from backend.app.services import advice_service, classifier_service, llm_service
 # Same texts as the chips in frontend/index.html.
 CHIPS: dict[Language, list[str]] = {
     Language.EN: ["Severe burn on my hand, near Chungju Station, 2 AM", "Deep cut, bleeding, Yeonsu-dong, 11 PM",
-                  "Fever and headache near City Hall, 3 AM", "Chest pain, hard to breathe, near Chungju Station"],
+                  "Fever and headache near City Hall, 3 AM", "Chest pain, hard to breathe, near Chungju Station",
+                  "Mild sore throat near Chungju Station"],
     Language.RU: ["Сильный ожог руки, у вокзала Чхунджу, 2 часа ночи", "Глубокий порез, кровь, Ёнсу-дон, 23:00",
-                  "Температура и головная боль, у мэрии, 3 часа ночи", "Боль в груди, трудно дышать, у вокзала Чхунджу"],
+                  "Температура и головная боль, у мэрии, 3 часа ночи", "Боль в груди, трудно дышать, у вокзала Чхунджу",
+                  "Немного болит горло, у вокзала Чхунджу"],
     Language.ZH: ["手部严重烧伤,忠州站附近,凌晨2点", "深度割伤出血,莲水洞,晚上11点", "发烧头痛,市政府附近,凌晨3点",
-                  "胸痛呼吸困难,忠州站附近"],
+                  "胸痛呼吸困难,忠州站附近", "轻微喉咙痛,忠州站附近"],
     Language.KO: ["손에 심한 화상, 충주역 근처, 새벽 2시", "깊은 상처, 출혈, 연수동, 밤 11시", "열과 두통, 시청 근처, 새벽 3시",
-                  "가슴 통증, 호흡 곤란, 충주역 근처"],
+                  "가슴 통증, 호흡 곤란, 충주역 근처", "가벼운 인후통, 충주역 근처"],
 }
 
 

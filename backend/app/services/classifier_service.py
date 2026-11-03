@@ -80,9 +80,17 @@ _KEYWORDS: dict[Category, Words] = {
         cjk=["发烧", "發燒", "发热", "發熱", "高烧", "高燒",
              "열이", "열나", "열과", "열도", "열은", "열을", "열에", "발열", "고열", "미열"],
     ),
+    # Mild complaints: GREEN (pharmacy first) unless a severity or danger word lifts them to AMBER.
+    Category.MINOR: Words(
+        english=["sore throat", "scratchy throat", "throat hurts", "runny nose", "stuffy nose", "blocked nose",
+                 "sneezing"],
+        russian=[r"бол\w* горл", r"горло болит", r"перш\w* в горле", r"насморк", r"заложен\w* нос", r"чихан"],
+        cjk=["喉咙痛", "喉嚨痛", "喉咙疼", "喉嚨疼", "嗓子疼", "嗓子痛", "咽喉痛", "流鼻涕", "鼻塞", "打喷嚏", "打噴嚏",
+             "인후통", "목이아파", "목이따끔", "목감기", "콧물", "코막힘", "코가막", "재채기"],
+    ),
 }
-# Checked in this order: the first category that matches wins.
-_PRIORITY = [Category.CRITICAL, Category.BURN, Category.CUT, Category.FEVER]
+# Checked in this order: the first category that matches wins (fever beats a sore throat).
+_PRIORITY = [Category.CRITICAL, Category.BURN, Category.CUT, Category.FEVER, Category.MINOR]
 
 # Lift burn/cut/fever to AMBER: severity words and danger signs (bleeding, deep wound, poisoning,
 # fracture...). A danger sign never comes back GREEN; with no category it is OTHER (AMBER) anyway.

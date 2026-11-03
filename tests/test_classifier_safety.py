@@ -1,6 +1,6 @@
 """Safety invariants of the rule classifier and the place table, in EN/RU/ZH/KO (offline).
 
-- The 16 demo chips (frontend/index.html): one severity per chip in every language, place found by text.
+- The 20 demo chips (frontend/index.html): one severity per chip in every language, place found by text.
 - Danger phrases never come back GREEN; critical phrases are RED with call_119.
 """
 
@@ -29,10 +29,11 @@ def demo_chips() -> dict[str, list[str]]:
 
 CHIPS = demo_chips()
 # Per chip (same order in every language): expected severity and the place it names (None: no place).
-EXPECTED = [(Severity.AMBER, STATION), (Severity.AMBER, YEONSU), (Severity.AMBER, CITY_CENTRE), (Severity.RED, STATION)]
+EXPECTED = [(Severity.AMBER, STATION), (Severity.AMBER, YEONSU), (Severity.AMBER, CITY_CENTRE), (Severity.RED, STATION),
+            (Severity.GREEN, STATION)]
 
 
-def test_demo_chips_are_four_per_language():
+def test_demo_chips_are_five_per_language():
     assert all(len(CHIPS[lang]) == len(EXPECTED) for lang in LANGS)
 
 
@@ -86,6 +87,8 @@ FEVER_WARNING = {  # fever + headache / stiff neck / rash: AMBER in every langua
     "en": ["fever and headache", "fever, stiff neck"], "ru": ["температура и головная боль", "жар, болит голова"],
     "zh": ["发烧头痛", "發燒頭疼"], "ko": ["열과 두통", "열이 나고 머리가 아파요"],
 }
+MINOR_ESCALATED = ["severe sore throat", "сильно болит горло", "喉咙痛得很严重", "심한 인후통",
+                   "sore throat and hard to breathe", "насморк и температура 40"]
 UNCLEAR = ["", "   ", "hello", "help me", "помогите", "что-то не так", "救命", "不舒服", "도와주세요", "이상해요"]
 
 
@@ -110,13 +113,19 @@ def test_fever_with_a_warning_sign_is_amber(lang, text):
     assert (result.category, result.severity) == (Category.FEVER, Severity.AMBER)
 
 
+@pytest.mark.parametrize("text", MINOR_ESCALATED)
+def test_minor_complaint_with_a_severity_or_danger_word_is_not_green(text):
+    assert classify(text).severity is not Severity.GREEN
+
+
 @pytest.mark.parametrize("text", UNCLEAR)
 def test_unclear_text_is_amber(text):
     result = classify(text)
     assert (result.category, result.severity, result.call_119) == (Category.OTHER, Severity.AMBER, False)
 
 
-@pytest.mark.parametrize("text", ["небольшой ожог", "小烫伤", "작은 화상", "small burn", "У ребёнка жаром 38"])
+@pytest.mark.parametrize("text", ["небольшой ожог", "小烫伤", "작은 화상", "small burn", "У ребёнка жаром 38",
+                                  "mild sore throat", "насморк", "鼻塞", "콧물이 나요"])
 def test_minor_cases_can_still_be_green(text):
     assert classify(text).severity is Severity.GREEN  # the fix must not turn everything AMBER
 

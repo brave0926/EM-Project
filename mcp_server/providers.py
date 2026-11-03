@@ -61,6 +61,7 @@ _OTC: dict[Category, list[str]] = {
     Category.BURN: ["Sterile non-adherent dressing", "Saline solution", "Burn gel (use as labelled)"],
     Category.CUT: ["Sterile dressing", "Saline solution", "Antiseptic solution", "Adhesive bandages"],
     Category.FEVER: ["Antipyretic / fever reducer (use as labelled)", "Oral rehydration salts", "Thermometer"],
+    Category.MINOR: ["Throat lozenges (use as labelled)", "Saline nasal spray", "Thermometer"],
     Category.CRITICAL: [],  # call 119, not a pharmacy
     Category.OTHER: ["Sterile dressing", "Saline solution", "Antiseptic solution"],
 }
