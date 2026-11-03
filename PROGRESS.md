@@ -7,8 +7,8 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 - Date: 2026-11-03 (W6). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: the `docs(progress)` commit for the tags; before it `cc08127 docs(progress): N3 chaos done, RT-103 measured [W6]`
-- Origin: `origin/main` = `cc08127` (pushed 2026-11-03); local is ahead by 1 (this progress commit, not pushed)
+- Last commit: the `docs(progress)` commit adding N6/N9; before it `46e972c docs(progress): tags pushed [W6]`
+- Origin: `origin/main` = `cc08127` (pushed 2026-11-03); local is ahead by 2 (progress commits, not pushed)
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
 - Tests: 259 passed (`uv run pytest -q`, 2026-11-03)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
@@ -28,7 +28,7 @@ mock n=30 (`docs/measurements/2026-11-03-mock.md`), live n=10 (`docs/measurement
 | RT-104 | data > 180 min = UNCERTAIN | implemented (rule, not latency) | `services/freshness.py`, `models/domain.py`; `tests/test_models.py::test_uncertain_after_180_min`, `tests/test_fallback.py::test_old_cache_is_uncertain` | n/a |
 | RT-105 | end-to-end <= 6.00 s | measured end to end (local) | `services/triage_stream_service.py` (cap at 6 s), `graph/triage_graph.py` (`total_ms`); `tests/test_triage_graph.py::test_rt105_end_to_end_with_default_mock_latency` | mock 910/1100/1116 ms, **live** 156/221/221 ms (client side: mock 911/1101/1122, live 157/227/227); 100% ok |
 
-Not yet measured: concurrent load and a deployed server over a real network (N6). RT-103 samples come from injected failures (chaos), not a real outage.
+Not yet measured: concurrent load and a deployed server over a real network (N7). RT-103 samples come from injected failures (chaos), not a real outage.
 
 ## Done
 
@@ -73,16 +73,22 @@ Not yet measured: concurrent load and a deployed server over a real network (N6)
 
 ## Next steps
 
-1. **N4 LangGraph SQLite checkpointer and GET /sessions/{id}.** Persist each triage run; return its state.
-   Done when: test runs a triage, then GET /sessions/{id} returns the same severity and facilities; unknown id -> 404. Ask before adding `langgraph-checkpoint-sqlite`.
-2. **N5 Real LLM client (`EM_LLM`).** Rewrite advice and extract context (location, time); rules stay the fallback and keep severity.
+Deadline 2026-12-16. Order: N5, N6, N7, N8, N9, N10; N4 last and optional.
+
+1. **N5 Real LLM client (`EM_LLM`).** Rewrite advice and extract context (location, time); rules stay the fallback and keep severity.
    Done when: `EM_LLM` unset behaves exactly as today (tests unchanged); tests prove a slow/failing LLM falls back to the template within `LLM_TIMEOUT_S` and never changes severity. Ask before adding an SDK.
-3. **N6 Docker/Nginx deployment.** Public URL behind Nginx with SSE buffering off.
+2. **N6 First-aid support agent.** Curated first-aid knowledge base with sources; MCP tool `get_first_aid(category)`; third worker in the graph next to ER and pharmacy; OTC whitelist without doses; the LLM only rephrases and its output is validated; serious signs always escalate to 119/ER.
+   Done when: tests prove the output contains no doses and no diagnoses, RED keeps the 119 line, and a 20-30 case scenario file passes.
+3. **N7 Docker/Nginx deployment.** Public URL behind Nginx with SSE buffering off; `EM_DEMO_CHAOS` stays off.
    Done when: `/health` returns 200 on the public URL and the stream arrives event by event (curl -N output). Tag `v1.2-online-service` after asking.
-4. **N7 Benchmark ReAct vs Plan-Execute on live data.** Reuse `eval/` agents against em-mcp-server with `EM_PROVIDER=live`.
+4. **N8 Benchmark ReAct vs Plan-Execute on live data.** Reuse `eval/` agents against em-mcp-server with `EM_PROVIDER=live`.
    Done when: a results table (latency, tool calls, RT pass rate) is in `docs/` with the command that produced it.
-5. **N8 Final report and release.** Report, demo script, tag `v1.3-final-release` (ask first). Due 2026-12-16.
+5. **N9 Quality evaluation.** Scenario set for triage (severity, category, 119 prompt) and first aid (N6), run against the app.
+   Done when: the scenario set is committed and a results table (pass rate per category and language, failures listed) is in `docs/` with the command that produced it.
+6. **N10 Final report and release.** Report, demo script, tag `v1.3-final-release` (ask first). Due 2026-12-16.
    Done when: report committed, all tests pass, tag plan approved.
+7. **N4 (optional, last) LangGraph SQLite checkpointer and GET /sessions/{id}.** Persist each triage run; return its state.
+   Done when: test runs a triage, then GET /sessions/{id} returns the same severity and facilities; unknown id -> 404. Ask before adding `langgraph-checkpoint-sqlite`.
 
 ## Endpoints
 
@@ -97,11 +103,11 @@ Not yet measured: concurrent load and a deployed server over a real network (N6)
 | GET / (frontend, static) | built | mounted in `main.py` |
 | GET /metrics | built (N2) | `metrics_controller.py` |
 | GET/POST/DELETE /demo/chaos | built (N3), 404 unless `EM_DEMO_CHAOS=1` | `demo_chaos_controller.py` |
-| GET /sessions/{id} | planned (N4) | - |
+| GET /sessions/{id} | planned (N4, optional) | - |
 
 ## Known gaps and decisions
 
-- Tags not yet created: `v0.8-distributed` (Docker split could qualify), `v1.1-observable` (/metrics + chaos could qualify), `v1.2-online-service` (N6), `v1.3-final-release` (N8). Ask before tagging or pushing tags.
+- Tags not yet created: `v0.8-distributed` (Docker split could qualify), `v1.1-observable` (/metrics + chaos could qualify), `v1.2-online-service` (N7), `v1.3-final-release` (N10). Ask before tagging or pushing tags.
 - LLM not wired: `clients/llm_client.py` has only `NoLlm` (returns the template). Triage is keyword rules only (N5).
 - Metrics are in memory only (lost on restart); a stream abandoned before `done` is not recorded.
 - No LangGraph checkpointer yet; SQLite is used only for the fallback cache (`clients/fallback_store.py`).
@@ -110,7 +116,7 @@ Not yet measured: concurrent load and a deployed server over a real network (N6)
 - Keys: `EM_DATA_GO_KR_KEY` (and optional `EM_DATA_GO_KR_KEY_PHARMACY`) live only in `.env` (gitignored). Never print, log or commit them.
 - Decision: RT-103 is measured from the moment of failure (after the RT-102 timeout fires), not from request start.
 - Decision: chaos is injected around the MCP client (works for mock and live); state in `clients/chaos.py`; OTC never targeted (no breaker). With chaos on under mock, totals stay ~0.5-1 s because the untargeted OTC call keeps the mock delay.
-- Demo chaos must stay off in any public deployment (N6): never set `EM_DEMO_CHAOS=1` there.
+- Demo chaos must stay off in any public deployment (N7): never set `EM_DEMO_CHAOS=1` there.
 - Decision: severity stays rule-based; an LLM may only rewrite text or extract context.
 - Decision: mock is the default provider; mock data is always labelled MOCK, live data LIVE.
 
@@ -118,6 +124,7 @@ Not yet measured: concurrent load and a deployed server over a real network (N6)
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-03: plan change: added N6 first-aid support agent and N9 quality evaluation; renumbered deploy N6->N7, benchmark N7->N8, report N8->N10; N4 /sessions moved last (optional). Older log lines use the old IDs. Next: N5 LLM client.
 - 2026-11-03: pushed main (`7adc347..cc08127`) and tags v0.4-arch-study `8b222e8`, v0.5-framework-agent `567cbf0`, v0.7-multi-agent `394cf52`, v0.9-realtime-sse `af03fb4`, v1.0-reliable-agent `d3fe5c5`. Next: N4.
 - 2026-11-03: N3 done: /demo/chaos `826f88e`, chaos_demo + RT-103 measured mock 2/2/2 ms, live 1/3/3 ms `2f5caa2`, demo controls `fb8fb71`; 259 tests pass. Next: N4 checkpointer + /sessions (ask about `langgraph-checkpoint-sqlite` first).
 - 2026-11-03: N2 done: GET /metrics `8d35a48`, bench_contracts + measurements mock n=30 / live n=10 `4ed0dd6`; all contracts measured OK except RT-103 (no samples yet); 249 tests pass. Next: N3 /demo/chaos.
