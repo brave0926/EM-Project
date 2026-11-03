@@ -72,7 +72,7 @@ Two providers in `mcp_server/providers.py`, selected by `EM_PROVIDER`:
 PROGRESS.md (repo root) is the living status file.
 
 a) Start of every session: read PROGRESS.md first, then run `git status` and `git log -5`, and tell me in 3-5 lines where we are and what the next step N* is. If PROGRESS.md and the repo disagree, trust the repo and fix PROGRESS.md.
-b) After finishing a task (and after each commit) update PROGRESS.md: Snapshot, move the item from Next steps to Done with the commit hash, add a Session log line. Keep it under ~150 lines: compress old Done items and move Session log lines beyond the last 10 into `docs/progress_archive.md`.
+b) Commit after every finished sub-step so no work stays uncommitted at the end of a session. After finishing a task (and after each commit) update PROGRESS.md: Snapshot, move the item from Next steps to Done with the commit hash, add a Session log line. Keep it under ~150 lines: compress old Done items and move Session log lines beyond the last 10 into `docs/progress_archive.md`.
 c) Before ending a session, or when I say "wrap up", make sure PROGRESS.md matches reality, then show me the Snapshot and the next 3 steps.
 d) Never mark something done without a passing test or a command output that proves it. If something is unverified, write "unverified".
 e) Commit PROGRESS.md together with the change it describes, or as `docs(progress): ... [W6]` (current week) when it is only a status update.
