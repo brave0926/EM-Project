@@ -1,9 +1,9 @@
-"""Request-scoped timing collector. Pure: no I/O, no FastAPI; imports only core and models.
+"""Request-scoped timing collector. Pure: no I/O, no FastAPI; imports only core and the chaos store.
 
 track() opens a RequestTiming for the current request (a ContextVar). The graph's node tasks copy
 the context when they start, so fallback_service can note the tool-call and fallback times of
 that request without passing anything through the services. Outside track() the notes only bump
-the global fallback counter.
+the global fallback counter. A request started while /demo/chaos is active is marked chaos_active.
 """
 
 from __future__ import annotations
@@ -14,11 +14,19 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 
+from backend.app.clients.chaos import get_chaos_store
+from backend.app.core.config import demo_chaos_enabled
+
 
 @dataclass
 class RequestTiming:
     tools: dict[str, int] = field(default_factory=dict)  # tool -> ms of its upstream call
     fallback_ms: int | None = None  # slowest cache answer of this request
+    chaos_active: bool = False  # /demo/chaos was on when the request started
+
+
+def chaos_active() -> bool:
+    return demo_chaos_enabled() and get_chaos_store().any_active()
 
 
 _current: ContextVar[RequestTiming | None] = ContextVar("em_request_timing", default=None)
@@ -28,7 +36,7 @@ _fallback_total = 0
 
 @contextmanager
 def track() -> Iterator[RequestTiming]:
-    timing = RequestTiming()
+    timing = RequestTiming(chaos_active=chaos_active())
     token = _current.set(timing)
     try:
         yield timing

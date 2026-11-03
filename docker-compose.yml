@@ -18,6 +18,7 @@ services:
     environment:
       EM_MCP_URL: http://mcp:8001/mcp
       EM_FALLBACK_DB: /data/em_fallback.db
+      EM_DEMO_CHAOS: ${EM_DEMO_CHAOS:-}  # 1 = /demo/chaos on (demo only; default off)
     volumes:
       - fallback-db:/data  # last good facility data survives restarts
     ports:

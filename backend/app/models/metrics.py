@@ -31,6 +31,7 @@ class MetricsRecord(BaseModel):
     severity: Severity | None  # None only if the run was cut before triage
     notices: list[Notice]
     timed_out: bool = False  # stream cut by the RT-105 cap
+    chaos_active: bool = False  # /demo/chaos was on during the request
     rt101_ok: bool | None  # None: not a stream
     rt102_ok: bool | None  # None: no tool call was made
     rt103_ok: bool | None  # None: no fallback served
@@ -60,5 +61,7 @@ class MetricsSummary(BaseModel):
     by_source: dict[str, int]  # source mix, e.g. "MOCK", "CACHED+LIVE", "NONE"
     fallback_served: int  # requests in the window answered (partly) from the cache
     fallback_served_total: int  # cache answers since start, also from /facilities/*
+    by_chaos: dict[str, int]  # requests with /demo/chaos on / off
     contracts: list[ContractStats]
     breakers: dict[str, dict[str, Any]]
+    recent: list[MetricsRecord] = []  # newest last; only when asked for (GET /metrics?recent=N)

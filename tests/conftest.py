@@ -4,6 +4,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
+from backend.app.clients.chaos import set_chaos_store
 from backend.app.clients.fallback_store import FallbackStore, set_fallback_store
 from backend.app.clients.mcp_client import McpClient, set_mcp_client
 from backend.app.main import app
@@ -21,6 +22,15 @@ def fresh_fallback(tmp_path):
     yield store
     set_fallback_store(None)
     fallback_service.reset_breakers()
+
+
+@pytest.fixture(autouse=True)
+def no_chaos(monkeypatch):
+    """Every test: /demo/chaos off (EM_DEMO_CHAOS unset) with no rules; tests opt in with setenv."""
+    monkeypatch.delenv("EM_DEMO_CHAOS", raising=False)
+    set_chaos_store(None)
+    yield
+    set_chaos_store(None)
 
 
 @pytest.fixture(autouse=True)

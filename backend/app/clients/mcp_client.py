@@ -15,7 +15,9 @@ from typing import Any, Literal, TypeVar
 from mcp import Client, MCPError
 from pydantic import TypeAdapter, ValidationError
 
-from backend.app.core.config import TOOL_TIMEOUT_S, settings
+from backend.app.clients.chaos import get_chaos_store
+from backend.app.core.config import TOOL_TIMEOUT_S, demo_chaos_enabled, settings
+from backend.app.models.chaos import ChaosMode
 from backend.app.models.domain import ERFacility, Location, PharmacyFacility
 from backend.app.models.enums import Category
 
@@ -170,14 +172,67 @@ class McpClient:
             raise McpClientError("BAD_RESPONSE", f"{tool}: {exc}") from exc
 
 
+class ChaosMcpClient:
+    """Demo failure injection around the real client (/demo/chaos). Same interface as McpClient.
+
+    Applied per tool (er, pharmacy) by the rule active at call time; OTC and everything else pass
+    straight through. Injected failures never reach upstream and write nothing anywhere; the
+    caller sees exactly the McpClientError a real failure would give. Delays stay inside the
+    RT-102 budget: a delay past timeout_s ends as TIMEOUT, like a slow real server.
+    """
+
+    def __init__(self, inner: Any) -> None:
+        self._inner = inner
+        self.timeout_s: float = getattr(inner, "timeout_s", TOOL_TIMEOUT_S)
+
+    def __getattr__(self, name: str) -> Any:  # aclose, connect, ...
+        return getattr(self._inner, name)
+
+    async def get_er_beds(self, region: str, near: Location | None = None) -> list[ERFacility]:
+        return await self._apply("er", "get_er_beds", lambda: self._inner.get_er_beds(region, near=near))
+
+    async def get_pharmacies(self, near: Location, at_time: str | None = None) -> list[PharmacyFacility]:
+        return await self._apply(
+            "pharmacy", "get_pharmacies", lambda: self._inner.get_pharmacies(near, at_time=at_time)
+        )
+
+    async def get_otc(self, category: Category) -> list[str]:
+        return await self._inner.get_otc(category)
+
+    async def _apply(self, tool: str, name: str, call: Any) -> Any:
+        rule = get_chaos_store().rule(tool)
+        if rule is None:
+            return await call()
+        if rule.mode is ChaosMode.ERROR:
+            raise McpClientError("TOOL_ERROR", f"{name}: injected error (demo chaos)")
+        if rule.mode is ChaosMode.HANG:
+            await asyncio.sleep(self.timeout_s)
+            raise McpClientError("TIMEOUT", f"{name}: no answer within {self.timeout_s:.2f} s (demo chaos)")
+
+        async def delayed() -> Any:
+            await asyncio.sleep((rule.delay_ms or 0) / 1000)
+            return await call()
+
+        try:
+            return await asyncio.wait_for(delayed(), self.timeout_s)
+        except TimeoutError:
+            raise McpClientError(
+                "TIMEOUT", f"{name}: no answer within {self.timeout_s:.2f} s (demo chaos delay)"
+            ) from None
+
+
 _shared: McpClient | None = None
 
 
 def get_mcp_client() -> McpClient:
-    """App-wide client (lazy). main.py closes it on shutdown."""
+    """App-wide client (lazy). main.py closes it on shutdown.
+    While a /demo/chaos rule is active (EM_DEMO_CHAOS=1 only) it comes wrapped in ChaosMcpClient;
+    otherwise it is the plain client, so chaos off changes nothing."""
     global _shared
     if _shared is None:
         _shared = McpClient()
+    if demo_chaos_enabled() and get_chaos_store().any_active():
+        return ChaosMcpClient(_shared)  # type: ignore[return-value]  # same interface
     return _shared
 
 

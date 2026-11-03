@@ -4,6 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.app.models.enums import Notice, Severity
 from backend.app.schemas.health import BreakerStatus
 
 
@@ -16,6 +17,27 @@ class ContractStatsSchema(BaseModel):
     p95_ms: int = Field(ge=0, description="Nearest-rank 95th percentile; 0 when count is 0.")
     max_ms: int = Field(ge=0)
     ok_rate: float = Field(ge=0, le=1, description="Share of samples within the limit; 0 when count is 0.")
+
+
+class MetricsRecordSchema(BaseModel):
+    """One request: timings and labels only, never the user's text, location or a key."""
+
+    kind: str = Field(description="triage or stream.")
+    at: datetime
+    sources: list[str] = Field(description="MOCK, LIVE, CACHED behind the answer.")
+    ttft_ms: int | None
+    er_ms: int | None = Field(description="ER tool call; null when skipped (circuit open).")
+    pharmacy_ms: int | None
+    fallback_ms: int | None = Field(description="From the failure to cached data served (RT-103).")
+    total_ms: int
+    severity: Severity | None
+    notices: list[Notice]
+    timed_out: bool
+    chaos_active: bool
+    rt101_ok: bool | None
+    rt102_ok: bool | None
+    rt103_ok: bool | None
+    rt105_ok: bool
 
 
 class MetricsResponse(BaseModel):
@@ -34,6 +56,7 @@ class MetricsResponse(BaseModel):
                     "by_source": {"MOCK": 1, "CACHED+LIVE": 1},
                     "fallback_served": 1,
                     "fallback_served_total": 1,
+                    "by_chaos": {"on": 1, "off": 1},
                     "contracts": [
                         {"contract": "RT-101", "metric": "ttft_ms", "limit_ms": 1500, "count": 2,
                          "p50_ms": 3, "p95_ms": 4, "max_ms": 4, "ok_rate": 1.0},
@@ -50,6 +73,7 @@ class MetricsResponse(BaseModel):
                         "er": {"state": "CLOSED", "failures": 1, "last_error": "TIMEOUT"},
                         "pharmacy": {"state": "CLOSED", "failures": 0, "last_error": None},
                     },
+                    "recent": [],
                 }
             ]
         }
@@ -67,4 +91,8 @@ class MetricsResponse(BaseModel):
     fallback_served: int = Field(ge=0, description="Requests in the window answered (partly) from the cache.")
     fallback_served_total: int = Field(ge=0, description="Cache answers since start, also from /facilities/*.")
     contracts: list[ContractStatsSchema] = Field(description="Per contract: count, p50, p95, max, ok_rate.")
+    by_chaos: dict[str, int] = Field(description="Requests made while /demo/chaos was on / off.")
     breakers: dict[str, BreakerStatus] = Field(description="Circuit breaker per tool (er, pharmacy).")
+    recent: list[MetricsRecordSchema] = Field(
+        default_factory=list, description="Last N records, newest last; only with ?recent=N (max 50)."
+    )

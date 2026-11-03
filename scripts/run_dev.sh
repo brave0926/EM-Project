@@ -13,11 +13,16 @@ PY="$ROOT/.venv/bin/python"
 API_PORT="${API_PORT:-8000}"
 export EM_MCP_PORT="${EM_MCP_PORT:-8001}"
 export EM_MCP_URL="http://127.0.0.1:${EM_MCP_PORT}/mcp"
-# Only the provider name is read here; the server loads the keys from .env itself (shell wins).
+# Only EM_PROVIDER and EM_DEMO_CHAOS are read here; the server loads the keys from .env itself (shell wins).
+env_value() { sed -n "s/^[[:space:]]*\(export[[:space:]]\+\)\?$1[[:space:]]*=[[:space:]]*//p" .env | tail -n1 | tr -d "\"'[:space:]"; }
 if [[ -z "${EM_PROVIDER:-}" && -f .env ]]; then
-  EM_PROVIDER="$(sed -n 's/^[[:space:]]*\(export[[:space:]]\+\)\?EM_PROVIDER[[:space:]]*=[[:space:]]*//p' .env | tail -n1 | tr -d "\"'[:space:]")"
+  EM_PROVIDER="$(env_value EM_PROVIDER)"
 fi
 export EM_PROVIDER="${EM_PROVIDER:-mock}"
+if [[ -z "${EM_DEMO_CHAOS:-}" && -f .env ]]; then
+  EM_DEMO_CHAOS="$(env_value EM_DEMO_CHAOS)"
+fi
+export EM_DEMO_CHAOS="${EM_DEMO_CHAOS:-}"  # 1 = /demo/chaos on (demo only)
 
 for port in "$API_PORT" "$EM_MCP_PORT"; do
   if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
@@ -46,7 +51,7 @@ for _ in $(seq 50); do
   sleep 0.2
 done
 echo
-echo "EM-Agent running (EM_PROVIDER=${EM_PROVIDER})"
+echo "EM-Agent running (EM_PROVIDER=${EM_PROVIDER}$([[ "$EM_DEMO_CHAOS" == 1 ]] && echo ", demo chaos ON"))"
 echo "  page:    http://127.0.0.1:${API_PORT}/"
 echo "  swagger: http://127.0.0.1:${API_PORT}/docs"
 echo "  mcp:     ${EM_MCP_URL}"

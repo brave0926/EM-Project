@@ -18,9 +18,18 @@ BREAKER_OPEN_S = 30.0  # how long an open circuit skips upstream calls
 END_TO_END_S = 6.0  # RT-105: whole triage (the stream is cut off here)
 LLM_TIMEOUT_S = 1.0  # advice rewrite budget; the template is used if the LLM is slower
 METRICS_CAPACITY = 1000  # /metrics keeps the last N request records (ring buffer)
+CHAOS_DEFAULT_S = 60  # /demo/chaos: a switch expires after this unless duration_s is given
+CHAOS_MAX_S = 300  # longest allowed chaos activation
+CHAOS_DEFAULT_DELAY_MS = 3000  # delay mode without delay_ms (longer than RT-102: ends as TIMEOUT)
+CHAOS_MAX_DELAY_MS = 10_000
 DEFAULT_REGION = "Chungju"
 FRONTEND_DIR = ROOT / "frontend"  # served at / by main.py
 KST = timezone(timedelta(hours=9))  # local time for opening hours (no DST in Korea)
+
+
+def demo_chaos_enabled() -> bool:
+    """EM_DEMO_CHAOS=1 turns on /demo/chaos (default off). Read on every call so tests can switch it."""
+    return os.environ.get("EM_DEMO_CHAOS", "").strip() == "1"
 
 
 class Settings(BaseModel):

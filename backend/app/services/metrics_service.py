@@ -99,6 +99,7 @@ def build_record(
         severity=severity,
         notices=list(dict.fromkeys(notices)),
         timed_out=timed_out,
+        chaos_active=timing.chaos_active or request_timing.chaos_active(),
         rt101_ok=None if ttft_ms is None else ttft_ms <= TTFT_MS,
         rt102_ok=all(t <= TOOL_MS for t in tool_times) if tool_times else None,
         rt103_ok=None if timing.fallback_ms is None else timing.fallback_ms <= FALLBACK_MS,
@@ -151,6 +152,7 @@ def summarise(
     requests_total: int,
     fallback_served_total: int,
     breakers: dict,
+    recent: int = 0,
 ) -> MetricsSummary:
     """Pure: the summary of the given records."""
     sources = Counter("+".join(r.sources) or "NONE" for r in records)
@@ -166,6 +168,7 @@ def summarise(
         by_source=dict(sources),
         fallback_served=sum(r.fallback_ms is not None for r in records),
         fallback_served_total=fallback_served_total,
+        by_chaos={"on": sum(r.chaos_active for r in records), "off": sum(not r.chaos_active for r in records)},
         contracts=[
             contract_stats("RT-101", "ttft_ms", TTFT_MS, _within((r.ttft_ms for r in records), TTFT_MS)),
             contract_stats("RT-102", "er_ms", TOOL_MS, _within((r.er_ms for r in records), TOOL_MS)),
@@ -175,10 +178,12 @@ def summarise(
             contract_stats("RT-105", "total_ms", TOTAL_MS, [(r.total_ms, r.rt105_ok) for r in records]),
         ],
         breakers=breakers,
+        recent=list(records[-recent:]) if recent > 0 else [],
     )
 
 
-def get_summary() -> MetricsSummary:
+def get_summary(recent: int = 0) -> MetricsSummary:
+    """recent: also return the last N records (no user text in them), newest last."""
     records, total = get_store().snapshot()
     return summarise(
         records,
@@ -186,4 +191,5 @@ def get_summary() -> MetricsSummary:
         requests_total=total,
         fallback_served_total=request_timing.fallback_total(),
         breakers=fallback_service.breaker_status(),
+        recent=recent,
     )
