@@ -10,7 +10,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import re
 from collections.abc import Awaitable, Callable, Sequence
 from time import perf_counter
 
@@ -20,24 +19,13 @@ from backend.app.clients.llm_client import get_llm_client
 from backend.app.core.config import END_TO_END_S, LLM_RESERVE_S, LLM_REWRITE_MAX_CHARS, LLM_TIMEOUT_S
 from backend.app.models.enums import Language, LlmOutcome
 from backend.app.models.llm import LlmContext, LlmJob
-from backend.app.services import request_timing
+from backend.app.services import content_safety, request_timing
 
 log = logging.getLogger(__name__)
 FAILED = {LlmOutcome.TIMEOUT, LlmOutcome.INVALID, LlmOutcome.ERROR}
-# Drug amounts the rewrite must not introduce (EN/RU/ZH/KO units).
-_DOSE = re.compile(
-    r"\d\s*(mg|mcg|µg|ml|iu|g\b|мг|мл|毫克|毫升|克|밀리그램|밀리리터|그램)|\d\s*(tablets?|pills?|таблет|片|알|정\b)",
-    re.IGNORECASE,
-)
-# Diagnoses the rewrite must not introduce ("you probably have ...", "диагноз", "诊断", "진단").
-_DIAGNOSIS = re.compile(
-    r"diagnos|\byou (?:most )?(?:likely |probably |may )?(?:have|suffer from|are having) (?:a|an)\b"
-    r"|\b(?:it|this) (?:is|looks like) (?:most )?(?:likely|probably) (?:a|an)\b"
-    r"|диагноз|у вас,? (?:вероятно|скорее всего|похоже)|(?:это|похоже,?) (?:похоже на|скорее всего)"
-    r"|诊断|你(?:可能|应该)?(?:患有|得了)|(?:很)?可能是.{0,6}(?:病|症|骨折|中风|心脏病)"
-    r"|진단|(?:인|일) 것 같습니다|(?:으로|로) 보입니다|가능성이 높습니다",
-    re.IGNORECASE,
-)
+# Doses and diagnoses the rewrite must not introduce (services/content_safety.py).
+_DOSE = content_safety.DOSE
+_DIAGNOSIS = content_safety.DIAGNOSIS
 
 
 class _Invalid(Exception):

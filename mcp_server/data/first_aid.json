@@ -1,0 +1,880 @@
+{
+ "version": 1,
+ "note": "Curated first-aid knowledge base. Drafts: reviewed=false means a human has not reviewed the text in that language (RU/ZH/KO are machine-translated drafts). Sources are UK guidance; 999 is given as 119 (Korea).",
+ "sources": {
+  "nhs_burns": {
+   "publisher": "NHS",
+   "title": "Burns and scalds",
+   "url": "https://www.nhs.uk/conditions/burns-and-scalds/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_cuts": {
+   "publisher": "NHS",
+   "title": "Cuts and grazes",
+   "url": "https://www.nhs.uk/conditions/cuts-and-grazes/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_fever": {
+   "publisher": "NHS",
+   "title": "High temperature (fever) in adults",
+   "url": "https://www.nhs.uk/conditions/fever-in-adults/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_sore_throat": {
+   "publisher": "NHS",
+   "title": "Sore throat",
+   "url": "https://www.nhs.uk/conditions/sore-throat/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_when_ae": {
+   "publisher": "NHS",
+   "title": "When to go to A&E",
+   "url": "https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/when-to-go-to-ae/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": "page review date (3 Feb 2026) has passed"
+  },
+  "brc_unresponsive_breathing": {
+   "publisher": "British Red Cross",
+   "title": "Unresponsive and breathing",
+   "url": "https://www.redcross.org.uk/first-aid/learn-first-aid/unresponsive-and-breathing",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "brc_bleeding_heavily": {
+   "publisher": "British Red Cross",
+   "title": "Bleeding heavily",
+   "url": "https://www.redcross.org.uk/first-aid/learn-first-aid/bleeding-heavily",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  },
+  "nhs_broken_arm": {
+   "publisher": "NHS",
+   "title": "Broken arm or wrist",
+   "url": "https://www.nhs.uk/conditions/broken-arm-or-wrist/",
+   "checked": "2026-11-03",
+   "verified": true,
+   "note": null
+  }
+ },
+ "common": {
+  "otc_note": {
+   "en": "Use as labelled. Ask a pharmacist if unsure, and tell them about allergies, age and pregnancy.",
+   "ru": "Применяйте согласно инструкции. Если сомневаетесь, спросите фармацевта и сообщите об аллергиях, возрасте и беременности.",
+   "zh": "请按说明使用。如有疑问请咨询药剂师，并告知过敏史、年龄及是否怀孕。",
+   "ko": "표시된 사용법대로 사용하세요. 확실하지 않으면 약사에게 문의하고 알레르기, 나이, 임신 여부를 알려 주세요."
+  },
+  "escalate_line": {
+   "en": "Warning sign: go to the nearest ER now or call 119.",
+   "ru": "Тревожный признак: немедленно езжайте в ближайшее приёмное отделение или звоните 119.",
+   "zh": "出现危险信号：请立即前往最近的急诊室或拨打119。",
+   "ko": "위험 신호: 지금 가장 가까운 응급실로 가거나 119에 전화하세요."
+  },
+  "no_specific": {
+   "en": "No specific guide for this case.",
+   "ru": "Для этого случая нет отдельной инструкции.",
+   "zh": "此情况没有专门的指南。",
+   "ko": "이 경우에 대한 별도 안내가 없습니다."
+  },
+  "not_medical_advice": {
+   "en": "Not medical advice. In an emergency call 119.",
+   "ru": "Не является медицинской рекомендацией. В экстренной ситуации звоните 119.",
+   "zh": "不构成医疗建议。紧急情况请拨打119。",
+   "ko": "의료 조언이 아닙니다. 응급 시 119에 전화하세요."
+  }
+ },
+ "entries": {
+  "critical": {
+   "kind": "minimal",
+   "sources": [
+    "brc_unresponsive_breathing",
+    "nhs_when_ae",
+    "nhs_broken_arm"
+   ],
+   "steps": [
+    {
+     "id": "critical.call_119",
+     "text": {
+      "en": "Call 119 now and follow the dispatcher's instructions.",
+      "ru": "Немедленно позвоните 119 и следуйте указаниям диспетчера.",
+      "zh": "立即拨打119，并听从调度员的指示。",
+      "ko": "지금 119에 전화하고 상황실 안내를 따르세요."
+     }
+    },
+    {
+     "id": "critical.stay",
+     "text": {
+      "en": "Stay with the person, talk to them and keep them calm.",
+      "ru": "Оставайтесь рядом с человеком, говорите с ним и успокаивайте.",
+      "zh": "陪在患者身边，和他说话，让他保持冷静。",
+      "ko": "환자 곁에 머물며 말을 걸고 안심시키세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "critical.no_food",
+     "text": {
+      "en": "Do not give food or drink.",
+      "ru": "Не давайте еду и питьё.",
+      "zh": "不要给患者吃东西或喝水。",
+      "ko": "음식이나 물을 주지 마세요."
+     }
+    },
+    {
+     "id": "critical.not_alone",
+     "text": {
+      "en": "Do not leave the person alone.",
+      "ru": "Не оставляйте человека одного.",
+      "zh": "不要让患者独处。",
+      "ko": "환자를 혼자 두지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "critical.breathing_changes",
+     "text": {
+      "en": "Breathing becomes noisy, irregular or stops: tell the 119 dispatcher at once.",
+      "ru": "Дыхание стало шумным, неровным или остановилось — сразу сообщите диспетчеру 119.",
+      "zh": "呼吸变得有杂音、不规律或停止：立即告诉119调度员。",
+      "ko": "숨소리가 거칠어지거나 불규칙해지거나 멈추면 즉시 119 상황실에 알리세요."
+     },
+     "match": {
+      "en": [
+       "gasping",
+       "not breathing",
+       "stopped breathing"
+      ],
+      "ru": [
+       "не дыш",
+       "хрип"
+      ],
+      "cjk": [
+       "没有呼吸",
+       "停止呼吸",
+       "숨을안",
+       "숨을쉬지"
+      ]
+     }
+    }
+   ],
+   "otc_types": [],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "burn": {
+   "kind": "standard",
+   "sources": [
+    "nhs_burns"
+   ],
+   "steps": [
+    {
+     "id": "burn.cool",
+     "text": {
+      "en": "Cool the burn under cool or lukewarm running water for 20 minutes, as soon as possible.",
+      "ru": "Как можно скорее охлаждайте ожог под прохладной проточной водой 20 минут.",
+      "zh": "尽快用凉的或微温的流动水冲洗烧伤处20分钟。",
+      "ko": "가능한 한 빨리 화상 부위를 시원하거나 미지근한 흐르는 물에 20분간 식히세요."
+     }
+    },
+    {
+     "id": "burn.remove",
+     "text": {
+      "en": "Remove clothing or jewellery near the burn, but not anything stuck to the skin.",
+      "ru": "Снимите одежду и украшения рядом с ожогом, но не то, что прилипло к коже.",
+      "zh": "取下烧伤处附近的衣物或首饰，但不要撕下粘在皮肤上的东西。",
+      "ko": "화상 부위 근처의 옷이나 장신구를 벗기되, 피부에 붙은 것은 떼지 마세요."
+     }
+    },
+    {
+     "id": "burn.cover",
+     "text": {
+      "en": "After cooling, lay cling film or a clean non-stick dressing loosely over the burn; do not wrap it tightly.",
+      "ru": "После охлаждения свободно положите на ожог пищевую плёнку или чистую неприлипающую повязку, не обматывайте туго.",
+      "zh": "冷却后，用保鲜膜或干净的不粘敷料轻轻覆盖烧伤处，不要缠紧。",
+      "ko": "식힌 뒤 랩이나 깨끗한 비접착 드레싱을 화상 위에 느슨하게 덮고, 꽉 감지 마세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "burn.no_creams",
+     "text": {
+      "en": "Do not put creams, oils or butter on the burn.",
+      "ru": "Не наносите на ожог кремы, масла или сливочное масло.",
+      "zh": "不要在烧伤处涂药膏、油或黄油。",
+      "ko": "화상 부위에 크림, 기름, 버터를 바르지 마세요."
+     }
+    },
+    {
+     "id": "burn.no_blisters",
+     "text": {
+      "en": "Do not burst blisters or use sticky plasters or dressings.",
+      "ru": "Не вскрывайте пузыри и не используйте лейкопластыри или клейкие повязки.",
+      "zh": "不要挑破水泡，也不要使用胶布或粘性敷料。",
+      "ko": "물집을 터뜨리거나 접착성 반창고·드레싱을 사용하지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "burn.large_deep",
+     "text": {
+      "en": "The burn is large, deep or severe.",
+      "ru": "Ожог большой, глубокий или сильный.",
+      "zh": "烧伤面积大、很深或很严重。",
+      "ko": "화상이 넓거나 깊거나 심합니다."
+     },
+     "match": {
+      "en": [
+       "large",
+       "deep",
+       "severe",
+       "big"
+      ],
+      "ru": [
+       "больш",
+       "глубок",
+       "сильн",
+       "обширн"
+      ],
+      "cjk": [
+       "大面积",
+       "大面積",
+       "很深",
+       "严重",
+       "嚴重",
+       "넓",
+       "깊",
+       "심한",
+       "심하게"
+      ]
+     }
+    },
+    {
+     "id": "burn.face",
+     "text": {
+      "en": "The burn is on the face, genitals or bottom.",
+      "ru": "Ожог на лице, половых органах или ягодицах.",
+      "zh": "烧伤在脸部、生殖器或臀部。",
+      "ko": "얼굴, 생식기 또는 엉덩이에 화상을 입었습니다."
+     },
+     "match": {
+      "en": [
+       "face",
+       "genitals",
+       "genital",
+       "bottom",
+       "buttock",
+       "buttocks"
+      ],
+      "ru": [
+       "лиц",
+       "половых",
+       "ягодиц"
+      ],
+      "cjk": [
+       "脸",
+       "臉",
+       "面部",
+       "生殖器",
+       "臀",
+       "얼굴",
+       "생식기",
+       "엉덩이"
+      ]
+     }
+    },
+    {
+     "id": "burn.chemical",
+     "text": {
+      "en": "The burn was caused by a chemical, acid or electricity.",
+      "ru": "Ожог вызван химикатом, кислотой или электричеством.",
+      "zh": "烧伤由化学品、酸或电造成。",
+      "ko": "화학물질, 산 또는 전기로 인한 화상입니다."
+     },
+     "match": {
+      "en": [
+       "chemical",
+       "acid",
+       "electric",
+       "electrical",
+       "electricity"
+      ],
+      "ru": [
+       "хими",
+       "кислот",
+       "электр",
+       "током"
+      ],
+      "cjk": [
+       "化学",
+       "化學",
+       "酸",
+       "电",
+       "電",
+       "화학",
+       "염산",
+       "황산",
+       "전기",
+       "감전"
+      ]
+     }
+    }
+   ],
+   "otc_types": [
+    {
+     "id": "burn.otc_dressing",
+     "text": {
+      "en": "Sterile non-adherent (non-stick) dressing",
+      "ru": "Стерильная неприлипающая повязка",
+      "zh": "无菌不粘敷料",
+      "ko": "멸균 비접착 드레싱"
+     }
+    },
+    {
+     "id": "burn.otc_film",
+     "text": {
+      "en": "Clean cling film (food wrap) to cover the burn",
+      "ru": "Чистая пищевая плёнка для покрытия ожога",
+      "zh": "干净的保鲜膜（用于覆盖烧伤处）",
+      "ko": "화상을 덮을 깨끗한 랩"
+     }
+    },
+    {
+     "id": "burn.otc_pain",
+     "text": {
+      "en": "A pain reliever suitable for you (ask a pharmacist)",
+      "ru": "Подходящее вам обезболивающее (спросите фармацевта)",
+      "zh": "适合您的止痛药（请咨询药剂师）",
+      "ko": "본인에게 맞는 진통제 (약사에게 문의)"
+     }
+    }
+   ],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "cut": {
+   "kind": "standard",
+   "sources": [
+    "nhs_cuts",
+    "brc_bleeding_heavily"
+   ],
+   "steps": [
+    {
+     "id": "cut.press",
+     "text": {
+      "en": "Press firmly on the wound with a clean cloth or bandage to stop the bleeding.",
+      "ru": "Плотно прижмите рану чистой тканью или бинтом, чтобы остановить кровь.",
+      "zh": "用干净的布或绷带用力按压伤口止血。",
+      "ko": "깨끗한 천이나 붕대로 상처를 세게 눌러 지혈하세요."
+     }
+    },
+    {
+     "id": "cut.raise",
+     "text": {
+      "en": "If you can, raise the injured part above the level of the heart.",
+      "ru": "По возможности поднимите поражённую часть тела выше уровня сердца.",
+      "zh": "如果可以，将受伤部位抬高到心脏水平以上。",
+      "ko": "가능하면 다친 부위를 심장보다 높이 올리세요."
+     }
+    },
+    {
+     "id": "cut.add_cloth",
+     "text": {
+      "en": "If blood comes through, put another cloth on top and keep pressing.",
+      "ru": "Если кровь проступает, положите сверху ещё одну ткань и продолжайте давить.",
+      "zh": "如果血渗出来，在上面再加一块布并继续按压。",
+      "ko": "피가 배어 나오면 위에 천을 한 장 더 대고 계속 누르세요."
+     }
+    },
+    {
+     "id": "cut.clean",
+     "text": {
+      "en": "When the bleeding has stopped, rinse with clean tap or bottled water and cover with a sterile dressing or plaster.",
+      "ru": "Когда кровь остановится, промойте рану чистой водопроводной или бутилированной водой и закройте стерильной повязкой или пластырем.",
+      "zh": "止血后，用干净的自来水或瓶装水冲洗，并用无菌敷料或创可贴覆盖。",
+      "ko": "피가 멈추면 깨끗한 수돗물이나 생수로 헹구고 멸균 드레싱이나 반창고로 덮으세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "cut.no_remove",
+     "text": {
+      "en": "Do not pull out anything stuck in the wound; press on either side of it instead.",
+      "ru": "Не вынимайте застрявший в ране предмет — давите по обе стороны от него.",
+      "zh": "不要拔出插在伤口里的东西，而应按压其两侧。",
+      "ko": "상처에 박힌 물체를 빼지 말고, 그 양옆을 누르세요."
+     }
+    },
+    {
+     "id": "cut.no_wash_heavy",
+     "text": {
+      "en": "Do not wash a wound that is bleeding heavily.",
+      "ru": "Не промывайте сильно кровоточащую рану.",
+      "zh": "不要清洗正在大量出血的伤口。",
+      "ko": "피가 많이 나는 상처는 씻지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "cut.wont_stop",
+     "text": {
+      "en": "The bleeding does not stop, or the blood is bright red and spurting.",
+      "ru": "Кровь не останавливается или ярко-красная и бьёт струёй.",
+      "zh": "血止不住，或血液鲜红并喷出。",
+      "ko": "피가 멈추지 않거나 선홍색 피가 뿜어져 나옵니다."
+     },
+     "match": {
+      "en": [
+       "won't stop",
+       "doesn't stop",
+       "does not stop",
+       "not stopping",
+       "spurting"
+      ],
+      "ru": [
+       "не останавлива",
+       "не прекраща",
+       "струей",
+       "фонтан"
+      ],
+      "cjk": [
+       "止不住",
+       "不停",
+       "喷",
+       "噴",
+       "멈추지",
+       "안멈",
+       "뿜"
+      ]
+     }
+    },
+    {
+     "id": "cut.numb",
+     "text": {
+      "en": "There is loss of feeling or movement near the wound.",
+      "ru": "Рядом с раной пропала чувствительность или движение.",
+      "zh": "伤口附近失去感觉或无法活动。",
+      "ko": "상처 주변에 감각이 없거나 움직일 수 없습니다."
+     },
+     "match": {
+      "en": [
+       "numb",
+       "can't move",
+       "cannot move",
+       "no feeling"
+      ],
+      "ru": [
+       "онемел",
+       "не чувству",
+       "не могу пошевел",
+       "не двига"
+      ],
+      "cjk": [
+       "麻木",
+       "没有感觉",
+       "沒有感覺",
+       "动不了",
+       "動不了",
+       "감각이없",
+       "움직일수없",
+       "마비"
+      ]
+     }
+    },
+    {
+     "id": "cut.deep",
+     "text": {
+      "en": "The cut is deep or large, is on the face or palm, or came from a bite.",
+      "ru": "Порез глубокий или большой, на лице или ладони, или это укус.",
+      "zh": "伤口很深或很大，在脸部或手掌，或由咬伤造成。",
+      "ko": "상처가 깊거나 크거나, 얼굴이나 손바닥에 있거나, 물려서 생긴 상처입니다."
+     },
+     "match": {
+      "en": [
+       "deep",
+       "large",
+       "face",
+       "palm",
+       "bite",
+       "bitten"
+      ],
+      "ru": [
+       "глубок",
+       "больш",
+       "лиц",
+       "ладон",
+       "укус"
+      ],
+      "cjk": [
+       "很深",
+       "深度",
+       "伤口深",
+       "脸",
+       "臉",
+       "手掌",
+       "咬",
+       "깊",
+       "얼굴",
+       "손바닥",
+       "물렸",
+       "물린"
+      ]
+     }
+    }
+   ],
+   "otc_types": [
+    {
+     "id": "cut.otc_dressing",
+     "text": {
+      "en": "Sterile dressings or gauze",
+      "ru": "Стерильные повязки или марля",
+      "zh": "无菌敷料或纱布",
+      "ko": "멸균 드레싱 또는 거즈"
+     }
+    },
+    {
+     "id": "cut.otc_plasters",
+     "text": {
+      "en": "Adhesive plasters",
+      "ru": "Лейкопластыри",
+      "zh": "创可贴（胶布绷带）",
+      "ko": "반창고"
+     }
+    },
+    {
+     "id": "cut.otc_wipes",
+     "text": {
+      "en": "Sterile wipes for cleaning",
+      "ru": "Стерильные салфетки для очистки",
+      "zh": "用于清洁的无菌湿巾",
+      "ko": "세척용 멸균 물티슈"
+     }
+    }
+   ],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "fever": {
+   "kind": "standard",
+   "sources": [
+    "nhs_fever"
+   ],
+   "steps": [
+    {
+     "id": "fever.rest",
+     "text": {
+      "en": "Get plenty of rest.",
+      "ru": "Больше отдыхайте.",
+      "zh": "多休息。",
+      "ko": "충분히 쉬세요."
+     }
+    },
+    {
+     "id": "fever.fluids",
+     "text": {
+      "en": "Drink plenty of fluids; water is best.",
+      "ru": "Пейте много жидкости, лучше всего воду.",
+      "zh": "多喝水，最好是白开水。",
+      "ko": "수분을 충분히 섭취하세요. 물이 가장 좋습니다."
+     }
+    },
+    {
+     "id": "fever.home",
+     "text": {
+      "en": "Stay at home and avoid contact with other people until the high temperature has gone.",
+      "ru": "Оставайтесь дома и избегайте контактов, пока не спадёт температура.",
+      "zh": "在高烧退去之前，请留在家中并避免与他人接触。",
+      "ko": "고열이 내릴 때까지 집에 머물며 다른 사람과의 접촉을 피하세요."
+     }
+    },
+    {
+     "id": "fever.measure",
+     "text": {
+      "en": "Check the temperature with a digital thermometer.",
+      "ru": "Измеряйте температуру цифровым термометром.",
+      "zh": "用电子体温计测量体温。",
+      "ko": "디지털 체온계로 체온을 재세요."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "fever.no_glass",
+     "text": {
+      "en": "Do not use a glass thermometer or forehead strips.",
+      "ru": "Не используйте стеклянный термометр или полоски для лба.",
+      "zh": "不要使用玻璃体温计或额贴式体温条。",
+      "ko": "유리 체온계나 이마 부착형 체온 스트립을 사용하지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "fever.worse",
+     "text": {
+      "en": "The high temperature is not getting better, is getting worse, or will not come down.",
+      "ru": "Температура не снижается, не проходит или становится выше.",
+      "zh": "高烧没有好转、加重或退不下来。",
+      "ko": "고열이 좋아지지 않거나 심해지거나 내려가지 않습니다."
+     },
+     "match": {
+      "en": [
+       "not getting better",
+       "getting worse",
+       "won't come down",
+       "not coming down",
+       "worse"
+      ],
+      "ru": [
+       "не снижа",
+       "не сбива",
+       "не спада",
+       "хуже"
+      ],
+      "cjk": [
+       "退不下",
+       "不退",
+       "加重",
+       "越来越",
+       "더심해",
+       "안떨어",
+       "안내려",
+       "내려가지"
+      ]
+     }
+    },
+    {
+     "id": "fever.very_high",
+     "text": {
+      "en": "The temperature is very high.",
+      "ru": "Очень высокая температура.",
+      "zh": "体温非常高。",
+      "ko": "체온이 매우 높습니다."
+     },
+     "match": {
+      "en": [
+       "very high"
+      ],
+      "ru": [
+       "очень высок"
+      ],
+      "cjk": [
+       "非常高",
+       "很高",
+       "매우높"
+      ]
+     }
+    }
+   ],
+   "otc_types": [
+    {
+     "id": "fever.otc_thermometer",
+     "text": {
+      "en": "Digital thermometer",
+      "ru": "Цифровой термометр",
+      "zh": "电子体温计",
+      "ko": "디지털 체온계"
+     }
+    },
+    {
+     "id": "fever.otc_reliever",
+     "text": {
+      "en": "A fever and pain reliever suitable for you (ask a pharmacist)",
+      "ru": "Подходящее вам жаропонижающее и обезболивающее (спросите фармацевта)",
+      "zh": "适合您的退烧止痛药（请咨询药剂师）",
+      "ko": "본인에게 맞는 해열진통제 (약사에게 문의)"
+     }
+    }
+   ],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  },
+  "minor": {
+   "kind": "standard",
+   "sources": [
+    "nhs_sore_throat"
+   ],
+   "steps": [
+    {
+     "id": "minor.fluids",
+     "text": {
+      "en": "Drink plenty of water and rest.",
+      "ru": "Пейте много воды и отдыхайте.",
+      "zh": "多喝水，多休息。",
+      "ko": "물을 충분히 마시고 쉬세요."
+     }
+    },
+    {
+     "id": "minor.soft_food",
+     "text": {
+      "en": "Eat cool or soft foods.",
+      "ru": "Ешьте прохладную или мягкую пищу.",
+      "zh": "吃凉的或软的食物。",
+      "ko": "시원하거나 부드러운 음식을 드세요."
+     }
+    },
+    {
+     "id": "minor.gargle",
+     "text": {
+      "en": "Adults can gargle with warm salty water and spit it out (not for children).",
+      "ru": "Взрослые могут полоскать горло тёплой солёной водой и выплёвывать её (не для детей).",
+      "zh": "成人可用温盐水漱口后吐出（儿童不宜）。",
+      "ko": "성인은 따뜻한 소금물로 가글한 뒤 뱉으세요 (어린이는 하지 마세요)."
+     }
+    }
+   ],
+   "do_not": [
+    {
+     "id": "minor.no_smoke",
+     "text": {
+      "en": "Avoid smoking and smoky places.",
+      "ru": "Не курите и избегайте задымлённых мест.",
+      "zh": "不要吸烟，避免烟雾环境。",
+      "ko": "흡연과 연기가 많은 곳을 피하세요."
+     }
+    },
+    {
+     "id": "minor.no_sweets_children",
+     "text": {
+      "en": "Do not give hard sweets or ice cubes to young children.",
+      "ru": "Не давайте маленьким детям леденцы или кубики льда.",
+      "zh": "不要给幼儿吃硬糖或冰块。",
+      "ko": "어린아이에게 딱딱한 사탕이나 얼음을 주지 마세요."
+     }
+    }
+   ],
+   "warning_signs": [
+    {
+     "id": "minor.breathing_swallow",
+     "text": {
+      "en": "Difficulty breathing, being unable to swallow, or drooling.",
+      "ru": "Трудно дышать, невозможно глотать или течёт слюна.",
+      "zh": "呼吸困难、无法吞咽或流口水。",
+      "ko": "숨쉬기 어렵거나, 삼킬 수 없거나, 침을 흘립니다."
+     },
+     "match": {
+      "en": [
+       "can't swallow",
+       "cannot swallow",
+       "unable to swallow",
+       "drooling",
+       "hard to breathe",
+       "difficulty breathing"
+      ],
+      "ru": [
+       "не могу глотать",
+       "не может глотать",
+       "трудно глотать",
+       "слюн",
+       "трудно дышать"
+      ],
+      "cjk": [
+       "无法吞咽",
+       "不能吞咽",
+       "吞不下",
+       "流口水",
+       "呼吸困难",
+       "삼킬수없",
+       "못삼",
+       "침을흘",
+       "숨쉬기어려"
+      ]
+     }
+    },
+    {
+     "id": "minor.worse_fast",
+     "text": {
+      "en": "Severe symptoms that are getting worse quickly.",
+      "ru": "Сильные симптомы, которые быстро ухудшаются.",
+      "zh": "症状严重且迅速加重。",
+      "ko": "증상이 심하고 빠르게 악화됩니다."
+     },
+     "match": {
+      "en": [
+       "getting worse",
+       "severe"
+      ],
+      "ru": [
+       "хуже",
+       "сильн"
+      ],
+      "cjk": [
+       "加重",
+       "严重",
+       "嚴重",
+       "급격히",
+       "심해",
+       "심한"
+      ]
+     }
+    }
+   ],
+   "otc_types": [
+    {
+     "id": "minor.otc_lozenges",
+     "text": {
+      "en": "Medicated lozenges",
+      "ru": "Лечебные пастилки для рассасывания",
+      "zh": "药用含片",
+      "ko": "의약용 트로키(목캔디)"
+     }
+    },
+    {
+     "id": "minor.otc_spray",
+     "text": {
+      "en": "Throat spray",
+      "ru": "Спрей для горла",
+      "zh": "咽喉喷雾",
+      "ko": "인후 스프레이"
+     }
+    },
+    {
+     "id": "minor.otc_reliever",
+     "text": {
+      "en": "A pain reliever suitable for you (ask a pharmacist)",
+      "ru": "Подходящее вам обезболивающее (спросите фармацевта)",
+      "zh": "适合您的止痛药（请咨询药剂师）",
+      "ko": "본인에게 맞는 진통제 (약사에게 문의)"
+     }
+    }
+   ],
+   "reviewed": {
+    "en": false,
+    "ru": false,
+    "zh": false,
+    "ko": false
+   }
+  }
+ }
+}
