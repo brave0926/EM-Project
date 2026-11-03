@@ -7,10 +7,10 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 - Date: 2026-11-03 (W6). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: the `docs(progress)` commit for N5; before it `4bb77d6 docs(llm): ...`
-- Origin: `origin/main` = `cc08127` (pushed 2026-11-03); local is ahead by 6 (not pushed)
+- Last commit: the `docs(progress)` commit for N5c; before it `736d175 fix(location): ...`
+- Origin: `origin/main` = `cc08127` (pushed 2026-11-03); local is ahead by 9 (not pushed)
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
-- Tests: 299 passed (`uv run pytest -q`, 2026-11-03)
+- Tests: 423 passed (`uv run pytest -q`, 2026-11-03)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 - LLM: off by default; `EM_LLM=anthropic` + `ANTHROPIC_API_KEY` (`docs/llm.md`). No key in `.env` yet: real API run unverified
@@ -68,6 +68,7 @@ Not yet measured: concurrent load and a deployed server over a real network (N7)
 - N3 `scripts/chaos_demo.py`, `docs/chaos.md`, RT-103 measured mock n=12 + live n=8 `2f5caa2`
 - N3 frontend Demo controls at `/?demo=1` (checked in headless Chrome: panel, buttons, CACHED badges, FALLBACK_CACHE notice) `fb8fb71`
 - N5 LLM client `d01f8a6`: rewrite + context extraction, LLM_TIMEOUT_S budget cut before RT-105, validation (facility names/phones, RED 119 line, no dose, no diagnosis), LLM_FALLBACK, `done.llm`, /metrics `llm`, chaos target `llm`; 40 tests in `tests/test_llm.py` (fake client). Proof EM_LLM off is unchanged: HEAD's 259 tests (old conftest) pass on the new code. `scripts/llm_smoke.py` + run_dev/compose/.env.example wiring `3544157`; `docs/llm.md`, CLAUDE.md allows `anthropic` `4bb77d6`. **Real Anthropic call unverified** (no key); chip runner checked against a live server with LLM off (16/16 `off`, totals 6-253 ms)
+- N5c rule gaps from the chip run: danger signs (bleeding, deep wound, poisoning, fracture) lift to AMBER and more critical phrases in EN/RU/ZH/KO `4d2e47a`; RU/ZH/KO place aliases (stems, ё=е, spaces ignored) `736d175`. `tests/test_classifier_safety.py`: 16 demo chips (read from `frontend/index.html`) give one severity per chip and a text place, also through the graph; >= 8 danger phrases per language never GREEN, >= 8 critical phrases per language RED + 119, unclear text AMBER
 
 ## In progress / uncommitted
 
@@ -110,7 +111,7 @@ Deadline 2026-12-16. Order: N6, N7, N8, N9, N10; N4 last and optional. (N5 real-
 
 - Tags not yet created: `v0.8-distributed` (Docker split could qualify), `v1.1-observable` (/metrics + chaos could qualify), `v1.2-online-service` (N7), `v1.3-final-release` (N10). Ask before tagging or pushing tags.
 - LLM: Anthropic client built and tested with a fake; never called with a real key yet. Severity stays keyword rules.
-- Rule gaps seen in the demo chips with LLM off (for N9): RU "у вокзала Чхунджу" and "у мэрии", ZH "莲水洞" and "市政府附近" give LOCATION_DEFAULT; ZH "深度割伤出血" is GREEN while the other languages give AMBER.
+- Classifier is keyword rules: phrases outside the tables fall to OTHER (AMBER) or to the minor GREEN path of burn/cut/fever; N9 measures coverage on a larger scenario set.
 - Metrics are in memory only (lost on restart); a stream abandoned before `done` is not recorded.
 - No LangGraph checkpointer yet; SQLite is used only for the fallback cache (`clients/fallback_store.py`).
 - Pharmacy radius API returns only today's hours: open status for other days is unknown (`docs/data_sources.md`).
@@ -126,6 +127,7 @@ Deadline 2026-12-16. Order: N6, N7, N8, N9, N10; N4 last and optional. (N5 real-
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-03: N5c done: ZH deep-cut chip GREEN -> AMBER and danger phrases covered in 4 languages `4d2e47a`; RU/ZH/KO place aliases `736d175`; 16/16 chips consistent with a text place; 423 tests pass. Next: N6 (or the N5 real-key run).
 - 2026-11-03: N5 reviewed against its done-criteria: added the diagnosis filter, budget/RED/never-called/log-privacy tests, llm_smoke, env wiring and docs; commits `d01f8a6`, `3544157`, `4bb77d6`; 299 tests pass. Real API run unverified (no key). Next: N6 first-aid agent.
 - 2026-11-03: plan change: added N6 first-aid support agent and N9 quality evaluation; renumbered deploy N6->N7, benchmark N7->N8, report N8->N10; N4 /sessions moved last (optional). Older log lines use the old IDs. Next: N5 LLM client.
 - 2026-11-03: pushed main (`7adc347..cc08127`) and tags v0.4-arch-study `8b222e8`, v0.5-framework-agent `567cbf0`, v0.7-multi-agent `394cf52`, v0.9-realtime-sse `af03fb4`, v1.0-reliable-agent `d3fe5c5`. Next: N4.
