@@ -7,8 +7,9 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 - Date: 2026-11-03 (W6). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: the `docs(progress)` commit for N3; before it `fb8fb71 feat(frontend): demo controls [W6]`
-- Origin: `origin/main` = `7adc347`; local is ahead by 9 (not pushed)
+- Last commit: the `docs(progress)` commit for the tags; before it `cc08127 docs(progress): N3 chaos done, RT-103 measured [W6]`
+- Origin: `origin/main` = `cc08127` (pushed 2026-11-03); local is ahead by 1 (this progress commit, not pushed)
+- Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
 - Tests: 259 passed (`uv run pytest -q`, 2026-11-03)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
@@ -100,7 +101,7 @@ Not yet measured: concurrent load and a deployed server over a real network (N6)
 
 ## Known gaps and decisions
 
-- Missing milestone tags: `v0.4-arch-study`, `v0.5-framework-agent`, `v0.7-multi-agent` (work exists; tag plan proposed, not created; tags need approval).
+- Tags not yet created: `v0.8-distributed` (Docker split could qualify), `v1.1-observable` (/metrics + chaos could qualify), `v1.2-online-service` (N6), `v1.3-final-release` (N8). Ask before tagging or pushing tags.
 - LLM not wired: `clients/llm_client.py` has only `NoLlm` (returns the template). Triage is keyword rules only (N5).
 - Metrics are in memory only (lost on restart); a stream abandoned before `done` is not recorded.
 - No LangGraph checkpointer yet; SQLite is used only for the fallback cache (`clients/fallback_store.py`).
@@ -117,6 +118,7 @@ Not yet measured: concurrent load and a deployed server over a real network (N6)
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-03: pushed main (`7adc347..cc08127`) and tags v0.4-arch-study `8b222e8`, v0.5-framework-agent `567cbf0`, v0.7-multi-agent `394cf52`, v0.9-realtime-sse `af03fb4`, v1.0-reliable-agent `d3fe5c5`. Next: N4.
 - 2026-11-03: N3 done: /demo/chaos `826f88e`, chaos_demo + RT-103 measured mock 2/2/2 ms, live 1/3/3 ms `2f5caa2`, demo controls `fb8fb71`; 259 tests pass. Next: N4 checkpointer + /sessions (ask about `langgraph-checkpoint-sqlite` first).
 - 2026-11-03: N2 done: GET /metrics `8d35a48`, bench_contracts + measurements mock n=30 / live n=10 `4ed0dd6`; all contracts measured OK except RT-103 (no samples yet); 249 tests pass. Next: N3 /demo/chaos.
 - 2026-11-03: status review; committed docker-compose v1 fix `67e986b`; added PROGRESS.md, session protocol in CLAUDE.md, `/progress` command `ac424e0`; 236 tests pass. Next: N2 /metrics.
