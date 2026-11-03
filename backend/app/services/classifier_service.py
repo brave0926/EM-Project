@@ -100,6 +100,13 @@ _SEVERE = Words(
         "심한", "심하게", "깊", "크게", "넓", "물집", "많이", "출혈", "피가", "피나", "중독", "삼켰", "골절",
     ],
 )
+# Fever with one of these (the warning signs named in the fever advice) is AMBER, never GREEN.
+_FEVER_WARNING = Words(
+    english=["headache", "headaches", "head hurts", "head is hurting", "stiff neck", "rash", "confused", "confusion"],
+    russian=[r"головн\w* бол", r"бол\w* голов", r"голова болит", r"ригидн", r"шея не сгиба", r"сыпь", r"спутан"],
+    cjk=["头痛", "頭痛", "头疼", "頭疼", "颈部僵硬", "頸部僵硬", "脖子僵硬", "皮疹", "意识混乱", "意識混亂",
+         "두통", "머리가아", "머리아", "목이뻣뻣", "발진", "의식혼란"],
+)
 # A two-digit number, optionally with a decimal, not followed by a time/duration word
 # ("40 minutes", "10 PM", "12시" are not temperatures).
 _TEMPERATURE = re.compile(
@@ -138,4 +145,6 @@ def classify(text: str) -> TriageResult:
         return TriageResult(category=category, severity=Severity.AMBER, call_119=False)
     temp = max_temperature_c(lowered) if category is Category.FEVER else None
     severe = _matches(lowered, _SEVERE) or (temp is not None and temp >= HIGH_FEVER_C)
+    if category is Category.FEVER:
+        severe = severe or _matches(lowered, _FEVER_WARNING)
     return TriageResult(category=category, severity=Severity.AMBER if severe else Severity.GREEN, call_119=False)

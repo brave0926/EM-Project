@@ -29,7 +29,7 @@ def demo_chips() -> dict[str, list[str]]:
 
 CHIPS = demo_chips()
 # Per chip (same order in every language): expected severity and the place it names (None: no place).
-EXPECTED = [(Severity.AMBER, STATION), (Severity.AMBER, YEONSU), (Severity.GREEN, CITY_CENTRE), (Severity.RED, STATION)]
+EXPECTED = [(Severity.AMBER, STATION), (Severity.AMBER, YEONSU), (Severity.AMBER, CITY_CENTRE), (Severity.RED, STATION)]
 
 
 def test_demo_chips_are_four_per_language():
@@ -82,6 +82,10 @@ CRITICAL = {  # RED + 119
     "ko": ["아버지가 의식이 없어요", "숨을 못 쉬어요", "가슴 통증", "가슴이 아파요", "호흡 곤란", "호흡곤란",
            "경련을 해요", "피가 멈추지 않아요", "쓰러졌어요"],
 }
+FEVER_WARNING = {  # fever + headache / stiff neck / rash: AMBER in every language
+    "en": ["fever and headache", "fever, stiff neck"], "ru": ["температура и головная боль", "жар, болит голова"],
+    "zh": ["发烧头痛", "發燒頭疼"], "ko": ["열과 두통", "열이 나고 머리가 아파요"],
+}
 UNCLEAR = ["", "   ", "hello", "help me", "помогите", "что-то не так", "救命", "不舒服", "도와주세요", "이상해요"]
 
 
@@ -98,6 +102,12 @@ def test_at_least_six_phrases_per_language():
 def test_critical_phrase_is_red_with_119(lang, text):
     result = classify(text)
     assert (result.category, result.severity, result.call_119) == (Category.CRITICAL, Severity.RED, True)
+
+
+@pytest.mark.parametrize(("lang", "text"), [(lang, t) for lang in LANGS for t in FEVER_WARNING[lang]])
+def test_fever_with_a_warning_sign_is_amber(lang, text):
+    result = classify(text)
+    assert (result.category, result.severity) == (Category.FEVER, Severity.AMBER)
 
 
 @pytest.mark.parametrize("text", UNCLEAR)
