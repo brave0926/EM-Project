@@ -41,6 +41,12 @@ Records live in memory only (lost on restart, never written to disk).
 - Counters: by kind, severity, notice, source mix (`MOCK`, `CACHED+LIVE`, `NONE`, ...), by chaos
   (`on`/`off`), fallback served, and the circuit breaker per tool (same as `/health`).
 - `GET /metrics?recent=N` (max 50) also returns the last N records, newest last (no user text).
+- `llm`: `extract_ms`, `rewrite_ms`, `select_ms` (first-aid item selection) against `LLM_TIMEOUT_S`, and
+  outcome counters (`docs/llm.md`).
+- `first_aid`: `worker_ms` (against the RT-102 budget), `outcomes` (ok / unavailable / none),
+  `by_category` (knowledge-base entry), `uncovered` (generic entry: outside the knowledge base),
+  `escalated` (a warning sign was named) and `llm_selected` (`docs/first_aid.md`). Records keep the
+  entry name, never the user's text.
 
 ## Measuring the contracts: scripts/bench_contracts.py
 

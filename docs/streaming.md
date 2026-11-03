@@ -16,6 +16,7 @@ The payloads are the `StreamEvent` models in `backend/app/models/stream.py` (in 
 | `triage` | first, from the rule classifier (no network) | `severity`, `category`, `call_119`, `language`, `location` {name, lat, lon, source}, `at_time`, `prompt_119` (RED only), `t_ms` |
 | `er` | ER worker finished | `facilities` (status LIVE / CACHED / UNCERTAIN, `fetched_at`, `distance_km`, ...), `t_ms` |
 | `pharmacy` | pharmacy worker finished; never for RED | `facilities`, `otc`, `at_time`, `t_ms` |
+| `first_aid` | first-aid worker finished (also for RED: minimal card) | curated card: `entry`, `kind`, `steps`, `do_not`, `warning_signs`, `otc_types`, `otc_note`, `escalate`, `sources`, `reviewed`, `selected_by`, `t_ms` (see `docs/first_aid.md`) |
 | `notice` | as soon as a notice is known, once each | `notice` (LOCATION_DEFAULT, FALLBACK_CACHE, NO_DATA, ER_UNAVAILABLE, ...), `t_ms` |
 | `advice` | after the workers | `language`, `advice` (same text as `/api/triage`), `t_ms` |
 | `done` | last, then the stream closes | `total_ms`, `stages` {triage, er, pharmacy, advice in ms}, `notices`, `timed_out`, `rt101_ok`, `rt105_ok` |
