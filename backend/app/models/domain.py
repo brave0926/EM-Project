@@ -10,6 +10,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 from backend.app.models.enums import Category, DataStatus, Language, Notice, Severity
+from backend.app.models.first_aid import FirstAidCard
 # Allowed exception to one-way imports: RT-104 is a model invariant (see CLAUDE.md).
 from backend.app.services.freshness import freshness_status
 
@@ -78,3 +79,4 @@ class TriageOutcome(BaseModel):
     notices: list[Notice]
     advice: str
     total_ms: int = Field(ge=0)
+    first_aid: FirstAidCard | None = None  # None when the guide could not be loaded

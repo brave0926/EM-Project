@@ -22,8 +22,8 @@ NOW = datetime.now(timezone.utc)
 class FakeMcp:
     """Per-tool delay in seconds, or "hang" (sleeps for ever) or "down" (UNAVAILABLE)."""
 
-    def __init__(self, er=0.0, pharmacy=0.0, otc=0.0, pharmacy_open=True) -> None:
-        self.delay = {"er": er, "pharmacy": pharmacy, "otc": otc}
+    def __init__(self, er=0.0, pharmacy=0.0, otc=0.0, first_aid=0.0, pharmacy_open=True) -> None:
+        self.delay = {"er": er, "pharmacy": pharmacy, "otc": otc, "first_aid": first_aid}
         self.pharmacy_open = pharmacy_open
         self.cancelled: list[str] = []
 
@@ -51,6 +51,12 @@ class FakeMcp:
     async def get_otc(self, category):
         await self._wait("otc")
         return ["Sterile dressing"]
+
+    async def get_first_aid(self, category, language):
+        from mcp_server.first_aid import guide  # the static knowledge base, like the real tool
+
+        await self._wait("first_aid")
+        return guide(category.value, language.value)
 
     async def aclose(self):
         pass
@@ -109,8 +115,13 @@ async def test_amber_order_and_content(fake):
     assert "Fake Pharmacy" in dict(events)["advice"]["advice"]
     done = events[-1][1]
     assert done["rt101_ok"] and done["rt105_ok"] and not done["timed_out"]
-    assert set(done["stages"]) == {"triage", "er", "pharmacy", "advice"}
+    assert set(done["stages"]) == {"triage", "er", "pharmacy", "first_aid", "advice"}
     assert done["stages"]["triage"] <= done["stages"]["er"] <= done["stages"]["advice"] <= done["total_ms"]
+    assert done["stages"]["first_aid"] <= done["stages"]["advice"]
+    card = dict(events)["first_aid"]
+    assert card["entry"] == "burn" and card["steps"][0]["id"] == "burn.cool" and card["otc_note"]
+    assert card["escalate"] and "burn.large_deep" in card["matched_warning_signs"]  # "Severe burn"
+    assert "match_en" not in json.dumps(card)
 
 
 @pytest.mark.asyncio
@@ -165,7 +176,7 @@ async def test_failing_worker_emits_notice_and_stream_continues(fake):
 
 @pytest.mark.asyncio
 async def test_client_disconnect_cancels_workers(fake):
-    mcp = fake(er="hang", pharmacy="hang", otc="hang")
+    mcp = fake(er="hang", pharmacy="hang", otc="hang", first_aid="hang")
     events = stream_triage(stream_updates(AMBER))
     first = await anext(events)
     assert first.event == "triage"
@@ -175,7 +186,7 @@ async def test_client_disconnect_cancels_workers(fake):
     with pytest.raises(asyncio.CancelledError):
         await pending
     await events.aclose()
-    assert sorted(mcp.cancelled) == ["er", "otc", "pharmacy"]
+    assert sorted(mcp.cancelled) == ["er", "first_aid", "otc", "pharmacy"]
 
 
 def test_swagger_documents_the_stream():

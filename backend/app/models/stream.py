@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from backend.app.models.domain import ERFacility, Location, LocationSource, PharmacyFacility
 from backend.app.models.enums import Category, Language, Notice, Severity
+from backend.app.models.first_aid import FirstAidCard
 from backend.app.models.llm import LlmStats
 
 
@@ -33,6 +34,13 @@ class ContextEvent(BaseModel):
     event: Literal["context"] = "context"
     location: StreamLocation
     at_time: str | None
+    t_ms: int = Field(ge=0)
+
+
+class FirstAidEvent(FirstAidCard):
+    """The curated first-aid card (steps, do_not, warning_signs, otc_types, sources), when loaded."""
+
+    event: Literal["first_aid"] = "first_aid"
     t_ms: int = Field(ge=0)
 
 
@@ -75,6 +83,6 @@ class DoneEvent(BaseModel):
 
 
 StreamEvent = Annotated[
-    TriageEvent | ContextEvent | ErEvent | PharmacyEvent | NoticeEvent | AdviceEvent | DoneEvent,
+    TriageEvent | ContextEvent | ErEvent | PharmacyEvent | FirstAidEvent | NoticeEvent | AdviceEvent | DoneEvent,
     Field(discriminator="event"),
 ]

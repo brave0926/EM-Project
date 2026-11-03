@@ -23,7 +23,7 @@ class FakeLlm(LlmClient):
 
     def __init__(self, rewrite=lambda t: "Calm down and read this.\n" + t, extract=None, delay=0.0, fail=False):
         self.rewrite, self.extract, self.delay, self.fail = rewrite, extract, delay, fail
-        self.calls = {"rewrite": 0, "extract": 0}
+        self.calls = {"rewrite": 0, "extract": 0, "select": 0}
 
     async def _go(self, job):
         self.calls[job] += 1
@@ -38,6 +38,10 @@ class FakeLlm(LlmClient):
     async def extract_context(self, query, language):
         await self._go("extract")
         return self.extract if self.extract is not None else json.dumps({"time": None, "place": None})
+
+    async def select_items(self, query, language, items):
+        await self._go("select")
+        return json.dumps({"ids": [items[0][0]]})  # the first step: a valid selection
 
 
 @pytest.fixture
@@ -161,7 +165,7 @@ async def test_red_keeps_severity_and_119_when_the_llm_is_slow_failing_or_invali
     assert data["advice"]["advice"] == template and advice_service.prompt_119(Language.EN) in template
     assert Notice.LLM_FALLBACK in [d["notice"] for n, d in events if n == "notice"]
     llm_stats = data["done"]["llm"]
-    assert fake.calls == {"rewrite": 1, "extract": 0}  # RED: place in the text, time not needed
+    assert fake.calls == {"rewrite": 1, "extract": 0, "select": 0}  # RED: no extraction, no item selection
     assert llm_stats["rewrite_ms"] <= llm_service.LLM_TIMEOUT_S * 1000 + 50
     assert elapsed < llm_service.LLM_TIMEOUT_S + 1.5 and data["done"]["rt105_ok"]
 
@@ -246,7 +250,7 @@ async def test_disabled_client_is_never_called(api):
         await stream(api, query)
         body = await triage(api, query)
         assert Notice.LLM_FALLBACK not in body["notices"]
-    assert spy.calls == {"rewrite": 0, "extract": 0}
+    assert spy.calls == {"rewrite": 0, "extract": 0, "select": 0}
 
 
 def test_client_factory(monkeypatch):
@@ -287,7 +291,7 @@ async def test_metrics_count_llm_outcomes_without_user_text(api, llm):
     assert body["llm"]["outcomes"] == {"ok": 1, "timeout": 0, "invalid": 0, "error": 1, "off": 1}
     assert body["llm"]["extract_ms"]["count"] == 2 and body["llm"]["rewrite_ms"]["count"] == 2
     assert [r["llm_outcome"] for r in body["recent"]] == ["ok", "error", "off"]
-    assert "burn" not in json.dumps(body).lower()
+    assert "hand" not in json.dumps(body).lower()  # user text never stored ("burn" is also a category name)
 
 
 @pytest.mark.asyncio

@@ -3,7 +3,7 @@
 The controller passes in the graph's node updates (graph/triage_graph.stream_updates); this
 service turns them into events, in the order the nodes finish:
 
-    triage (rules only, first) -> [context] -> notice* -> er / pharmacy (either order) -> notice* -> advice -> done
+    triage (rules only, first) -> [context] -> notice* -> er / pharmacy / first_aid (any order) -> notice* -> advice -> done
 
 context comes only when the LLM filled a missing place or time (EM_LLM=anthropic). done carries
 the LLM timings and outcome.
@@ -30,6 +30,7 @@ from backend.app.models.stream import (
     ContextEvent,
     DoneEvent,
     ErEvent,
+    FirstAidEvent,
     NoticeEvent,
     PharmacyEvent,
     StreamEvent,
@@ -108,6 +109,10 @@ def _events(run: _Run, node: str, update: dict[str, Any]) -> list[StreamEvent]:
             t_ms=run.stamp("pharmacy"),
         )
         return [event, *run.new_notices(notices)]
+    if node == "first_aid_worker":
+        card = update.get("first_aid")
+        events = [FirstAidEvent(**card.model_dump(), t_ms=run.stamp("first_aid"))] if card is not None else []
+        return [*events, *run.new_notices(notices)]
     if node == "advise":
         notice_events = run.new_notices(notices)
         advice = AdviceEvent(language=run.state["language"], advice=update["advice"], t_ms=run.stamp("advice"))
@@ -124,6 +129,8 @@ def _cut_short(run: _Run) -> list[StreamEvent]:
     missing = [] if "er" in state else [Notice.ER_UNAVAILABLE]
     if not red and "pharmacies" not in state:
         missing.append(Notice.PHARMACY_UNAVAILABLE)
+    if "first_aid" not in state:
+        missing.append(Notice.FIRST_AID_UNAVAILABLE)
     events: list[StreamEvent] = list(run.new_notices(missing))
     if "advice" not in run.stages:
         text = advice_service.build_advice(

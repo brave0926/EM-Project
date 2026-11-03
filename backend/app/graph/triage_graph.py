@@ -1,7 +1,7 @@
 """Supervisor graph for triage (LangGraph).
 
-    START -> triage -> extract -+- red:   er_worker ----------------------+-> advise -> END
-                                +- other: er_worker || pharmacy_worker ---+
+    START -> triage -> extract -+- red:   er_worker || first_aid_worker ---------------------+-> advise -> END
+                                +- other: er_worker || pharmacy_worker || first_aid_worker ---+
 
 triage classifies the query with rules (no network, fast first answer). extract asks the LLM
 (EM_LLM=anthropic only) for a time or known place the rules missed; rules always win and severity
@@ -33,10 +33,12 @@ from backend.app.models.domain import (
     TriageResult,
 )
 from backend.app.models.enums import Language, Notice, Severity
+from backend.app.models.first_aid import FirstAidCard
 from backend.app.services import (
     advice_service,
     classifier_service,
     er_facility_service,
+    first_aid_service,
     language_service,
     llm_service,
     location_service,
@@ -67,6 +69,7 @@ class TriageState(TypedDict, total=False):
     pharmacies: list[PharmacyFacility]
     otc: list[str]
     notices: Annotated[list[Notice], operator.add]  # parallel workers append
+    first_aid: FirstAidCard | None
     advice: str
 
 
@@ -107,8 +110,8 @@ async def extract_node(state: TriageState) -> TriageState:
 
 def route(state: TriageState) -> list[str]:
     if state["triage"].severity is Severity.RED:
-        return ["er_worker"]  # critical: 119 first, skip the pharmacy
-    return ["er_worker", "pharmacy_worker"]
+        return ["er_worker", "first_aid_worker"]  # critical: 119 first, skip the pharmacy; minimal guide
+    return ["er_worker", "pharmacy_worker", "first_aid_worker"]
 
 
 async def er_worker(state: TriageState) -> TriageState:
@@ -149,6 +152,16 @@ async def pharmacy_worker(state: TriageState) -> TriageState:
     return update
 
 
+async def first_aid_worker(state: TriageState) -> TriageState:
+    """Curated first-aid card (static knowledge base via MCP). Never fails the request."""
+    try:
+        card, notices = await first_aid_service.get_card(state["query"], state["triage"], state["language"])
+    except Exception:
+        log.warning("first_aid_worker failed", exc_info=True)
+        card, notices = None, [Notice.FIRST_AID_UNAVAILABLE]
+    return {"first_aid": card, "notices": notices}
+
+
 async def advise(state: TriageState) -> TriageState:
     er, pharmacies = state.get("er", []), state.get("pharmacies", [])
     extra = advice_service.data_notices(er, pharmacies)
@@ -170,12 +183,14 @@ def build_graph():
     graph.add_node("extract", extract_node)
     graph.add_node("er_worker", er_worker)
     graph.add_node("pharmacy_worker", pharmacy_worker)
+    graph.add_node("first_aid_worker", first_aid_worker)
     graph.add_node("advise", advise)
     graph.add_edge(START, "triage")
     graph.add_edge("triage", "extract")
-    graph.add_conditional_edges("extract", route, ["er_worker", "pharmacy_worker"])
+    graph.add_conditional_edges("extract", route, ["er_worker", "pharmacy_worker", "first_aid_worker"])
     graph.add_edge("er_worker", "advise")
     graph.add_edge("pharmacy_worker", "advise")
+    graph.add_edge("first_aid_worker", "advise")
     graph.add_edge("advise", END)
     return graph.compile()
 
@@ -226,6 +241,7 @@ async def run_triage(
         notices=list(dict.fromkeys(state.get("notices", []))),
         advice=state["advice"],
         total_ms=round((time.perf_counter() - t0) * 1000),
+        first_aid=state.get("first_aid"),
     )
     metrics_service.record(
         "triage", timing, total_ms=outcome.total_ms, severity=outcome.severity, notices=outcome.notices,

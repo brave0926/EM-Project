@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from backend.app.schemas.first_aid import FirstAidCardSchema
 from backend.app.models.domain import HHMM_PATTERN, ERFacility, Location, LocationSource, PharmacyFacility
 from backend.app.models.enums import Category, Language, Notice, Severity
 
@@ -92,4 +93,7 @@ class TriageResponseSchema(BaseModel):
     otc: list[str] = Field(default_factory=list, description="Generic first-aid items. Empty for critical.")
     notices: list[Notice] = Field(default_factory=list, description="Warnings, e.g. ER_UNAVAILABLE, DATA_UNCERTAIN.")
     advice: str = Field(description="First-aid guidance in the user's language. Not medical advice.")
+    first_aid: FirstAidCardSchema | None = Field(
+        default=None, description="Step-by-step card from the curated knowledge base; null if unavailable."
+    )
     total_ms: int = Field(ge=0, description="End-to-end latency in milliseconds (RT-105: <= 6000).")

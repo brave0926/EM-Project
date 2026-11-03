@@ -48,8 +48,8 @@ RESPONSES: dict[int | str, dict[str, Any]] = {
         "description": (
             "text/event-stream. Each message is `event: <name>` + `data: <json>`. Order: `triage` first "
             "(rules only, RT-101 <= 1.5 s, with the 119 prompt for RED), `context` only if the LLM "
-            "(EM_LLM=anthropic) filled a missing place or time, then `er` and `pharmacy` as each "
-            "worker finishes (either order; no pharmacy for RED), `notice` whenever a notice is known, "
+            "(EM_LLM=anthropic) filled a missing place or time, then `er`, `pharmacy` and `first_aid` "
+            "(the curated first-aid card) as each worker finishes (any order; no pharmacy for RED, a minimal card), `notice` whenever a notice is known, "
             "`advice`, and `done` (timings, rt101_ok, rt105_ok, llm) after which the stream closes. "
             "Capped at RT-105 (6 s): then `done` has rt105_ok=false. The `data` payloads follow the "
             "StreamEvent schema (discriminated by `event`)."

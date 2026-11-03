@@ -26,6 +26,7 @@ from backend.app.models.domain import ERFacility, PharmacyFacility
 from backend.app.models.enums import DataStatus, LlmOutcome, Notice, Severity
 from backend.app.models.metrics import (
     ContractStats,
+    FirstAidSummary,
     LlmSummary,
     MetricsRecord,
     MetricsSummary,
@@ -103,6 +104,7 @@ def build_record(
     er_ms, pharmacy_ms = timing.tools.get("er"), timing.tools.get("pharmacy")
     tool_times = [t for t in (er_ms, pharmacy_ms) if t is not None]
     llm = timing.llm_stats()
+    fa = timing.first_aid
     return MetricsRecord(
         kind=kind,
         at=at,
@@ -118,7 +120,14 @@ def build_record(
         chaos_active=timing.chaos_active or request_timing.chaos_active(),
         llm_extract_ms=llm.extract_ms,
         llm_rewrite_ms=llm.rewrite_ms,
+        llm_select_ms=llm.select_ms,
         llm_outcome=llm.outcome,
+        first_aid_entry=fa.entry if fa else None,
+        first_aid_ms=fa.ms if fa else None,
+        first_aid_outcome=fa.outcome if fa else "none",
+        first_aid_generic=fa.generic if fa else False,
+        first_aid_escalated=fa.escalated if fa else False,
+        first_aid_selected_by=fa.selected_by if fa and fa.outcome == "ok" else None,
         rt101_ok=None if ttft_ms is None else ttft_ms <= TTFT_MS,
         rt102_ok=all(t <= TOOL_MS for t in tool_times) if tool_times else None,
         rt103_ok=None if timing.fallback_ms is None else timing.fallback_ms <= FALLBACK_MS,
@@ -199,7 +208,16 @@ def summarise(
         llm=LlmSummary(
             extract_ms=contract_stats("LLM", "extract_ms", LLM_MS, _within((r.llm_extract_ms for r in records), LLM_MS)),
             rewrite_ms=contract_stats("LLM", "rewrite_ms", LLM_MS, _within((r.llm_rewrite_ms for r in records), LLM_MS)),
+            select_ms=contract_stats("LLM", "select_ms", LLM_MS, _within((r.llm_select_ms for r in records), LLM_MS)),
             outcomes={o.value: sum(r.llm_outcome is o for r in records) for o in LlmOutcome},
+        ),
+        first_aid=FirstAidSummary(
+            worker_ms=contract_stats("RT-102", "first_aid_ms", TOOL_MS, _within((r.first_aid_ms for r in records), TOOL_MS)),
+            outcomes={o: sum(r.first_aid_outcome == o for r in records) for o in ("ok", "unavailable", "none")},
+            by_category=dict(Counter(r.first_aid_entry for r in records if r.first_aid_entry)),
+            uncovered=sum(r.first_aid_generic for r in records),
+            escalated=sum(r.first_aid_escalated for r in records),
+            llm_selected=sum(r.first_aid_selected_by == "llm" for r in records),
         ),
         breakers=breakers,
         recent=list(records[-recent:]) if recent > 0 else [],

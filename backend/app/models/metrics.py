@@ -34,7 +34,14 @@ class MetricsRecord(BaseModel):
     chaos_active: bool = False  # /demo/chaos was on during the request
     llm_extract_ms: int | None = Field(default=None, ge=0)
     llm_rewrite_ms: int | None = Field(default=None, ge=0)
+    llm_select_ms: int | None = Field(default=None, ge=0)
     llm_outcome: LlmOutcome = LlmOutcome.OFF
+    first_aid_entry: str | None = None  # knowledge-base entry (a category or "generic"), never user text
+    first_aid_ms: int | None = Field(default=None, ge=0)
+    first_aid_outcome: Literal["ok", "unavailable", "none"] = "none"  # none: worker did not finish
+    first_aid_generic: bool = False  # outside the knowledge base
+    first_aid_escalated: bool = False
+    first_aid_selected_by: Literal["kb", "llm"] | None = None
     rt101_ok: bool | None  # None: not a stream
     rt102_ok: bool | None  # None: no tool call was made
     rt103_ok: bool | None  # None: no fallback served
@@ -55,7 +62,17 @@ class ContractStats(BaseModel):
 class LlmSummary(BaseModel):
     extract_ms: ContractStats  # limit = LLM_TIMEOUT_S
     rewrite_ms: ContractStats
+    select_ms: ContractStats
     outcomes: dict[str, int]  # ok, timeout, invalid, error, off (requests in the window)
+
+
+class FirstAidSummary(BaseModel):
+    worker_ms: ContractStats  # first_aid_worker time (limit = RT-102 tool budget)
+    outcomes: dict[str, int]  # ok, unavailable, none
+    by_category: dict[str, int]  # knowledge-base entry -> requests
+    uncovered: int  # generic entry: the case is outside the knowledge base
+    escalated: int  # a warning sign was named
+    llm_selected: int  # items narrowed by the LLM
 
 
 class MetricsSummary(BaseModel):
@@ -73,5 +90,6 @@ class MetricsSummary(BaseModel):
     by_chaos: dict[str, int]  # requests with /demo/chaos on / off
     contracts: list[ContractStats]
     llm: LlmSummary
+    first_aid: FirstAidSummary
     breakers: dict[str, dict[str, Any]]
     recent: list[MetricsRecord] = []  # newest last; only when asked for (GET /metrics?recent=N)

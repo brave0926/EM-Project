@@ -55,7 +55,8 @@ async def test_triage_and_stream_are_counted(api):
     total = contract(body, "RT-105", "total_ms")
     assert total["count"] == 3 and total["ok_rate"] == 1.0 and total["p50_ms"] <= total["p95_ms"] <= total["max_ms"]
     text = str(body)
-    assert SECRET not in text and "burn" not in text.lower() and "36.97" not in text  # no user text or place
+    # "burn" may appear as a category name; the user text ("hand") and the place may not
+    assert SECRET not in text and "hand" not in text.lower() and "36.97" not in text
 
 
 class FlakyMcp:

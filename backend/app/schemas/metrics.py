@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -36,7 +37,14 @@ class MetricsRecordSchema(BaseModel):
     chaos_active: bool
     llm_extract_ms: int | None = Field(description="LLM context extraction; null when not called.")
     llm_rewrite_ms: int | None = Field(description="LLM advice rewrite; null when not called.")
+    llm_select_ms: int | None = Field(default=None, description="LLM first-aid item selection; null when not called.")
     llm_outcome: LlmOutcome = Field(description="Worst LLM outcome of the request; off when no call.")
+    first_aid_entry: str | None = Field(default=None, description="First-aid entry (category or generic).")
+    first_aid_ms: int | None = Field(default=None, description="first_aid_worker time; null if it did not finish.")
+    first_aid_outcome: Literal["ok", "unavailable", "none"] = "none"
+    first_aid_generic: bool = Field(default=False, description="Outside the knowledge base (generic entry).")
+    first_aid_escalated: bool = Field(default=False, description="A warning sign was named.")
+    first_aid_selected_by: Literal["kb", "llm"] | None = None
     rt101_ok: bool | None
     rt102_ok: bool | None
     rt103_ok: bool | None
@@ -46,7 +54,17 @@ class MetricsRecordSchema(BaseModel):
 class LlmSummarySchema(BaseModel):
     extract_ms: ContractStatsSchema = Field(description="LLM context extraction latency (limit LLM_TIMEOUT_S).")
     rewrite_ms: ContractStatsSchema = Field(description="LLM advice rewrite latency (limit LLM_TIMEOUT_S).")
+    select_ms: ContractStatsSchema = Field(description="LLM first-aid item selection latency (limit LLM_TIMEOUT_S).")
     outcomes: dict[str, int] = Field(description="Requests per LLM outcome: ok, timeout, invalid, error, off.")
+
+
+class FirstAidSummarySchema(BaseModel):
+    worker_ms: ContractStatsSchema = Field(description="first_aid_worker time (limit: RT-102 tool budget).")
+    outcomes: dict[str, int] = Field(description="Requests per outcome: ok, unavailable, none.")
+    by_category: dict[str, int] = Field(description="Requests per knowledge-base entry.")
+    uncovered: int = Field(ge=0, description="Requests outside the knowledge base (generic entry): first_aid_uncovered.")
+    escalated: int = Field(ge=0, description="Requests where the text named a warning sign.")
+    llm_selected: int = Field(ge=0, description="Requests where the LLM narrowed the items.")
 
 
 class MetricsResponse(BaseModel):
@@ -109,6 +127,7 @@ class MetricsResponse(BaseModel):
     contracts: list[ContractStatsSchema] = Field(description="Per contract: count, p50, p95, max, ok_rate.")
     by_chaos: dict[str, int] = Field(description="Requests made while /demo/chaos was on / off.")
     llm: LlmSummarySchema = Field(description="LLM job latency and outcome counters (no user text).")
+    first_aid: FirstAidSummarySchema = Field(description="First-aid worker time, outcomes, entries (no user text).")
     breakers: dict[str, BreakerStatus] = Field(description="Circuit breaker per tool (er, pharmacy).")
     recent: list[MetricsRecordSchema] = Field(
         default_factory=list, description="Last N records, newest last; only with ?recent=N (max 50)."
