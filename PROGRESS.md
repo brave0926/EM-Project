@@ -7,9 +7,9 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 - Date: 2026-11-03 (W6). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: the `docs(progress)` commit for N2; before it `4ed0dd6 feat(scripts): bench_contracts and first measurements [W6]`
-- Origin: `origin/main` = `7adc347`; local is ahead by 5 (not pushed)
-- Tests: 249 passed (`uv run pytest -q`, 2026-11-03)
+- Last commit: the `docs(progress)` commit for N3; before it `fb8fb71 feat(frontend): demo controls [W6]`
+- Origin: `origin/main` = `7adc347`; local is ahead by 9 (not pushed)
+- Tests: 259 passed (`uv run pytest -q`, 2026-11-03)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 
@@ -23,11 +23,11 @@ mock n=30 (`docs/measurements/2026-11-03-mock.md`), live n=10 (`docs/measurement
 |---|---|---|---|---|
 | RT-101 | TTFT <= 1.50 s | measured end to end (local) | `services/triage_stream_service.py` (rules-only `triage` event first); `tests/test_triage_stream.py::test_first_event_long_before_a_slow_upstream` | mock 1/2/3 ms, **live** 1/3/3 ms (client side: mock 2/3/9, live 2/9/9); 100% ok |
 | RT-102 | tool call <= 2.00 s | measured end to end (local) | `clients/mcp_client.py` (one deadline: connect, call, reconnect), timed in `services/fallback_service.py`; `tests/test_mcp_client.py::test_default_timeout_is_rt102` | mock er 739/1077/1093, pharmacy 858/1089/1095 ms; **live** er 3/201/201 (mostly provider cache hits, max = cold call), pharmacy 152/198/198 ms; 100% ok |
-| RT-103 | fallback <= 200 ms | implemented; measured in tests only, not measured end to end (no failure in the bench runs) | `services/fallback_service.py` (`wait_for(..., FALLBACK_BUDGET_S)`, timed from the failure); `tests/test_fallback.py::test_hang_served_from_cache_within_rt103`, `tests/test_metrics_api.py::test_fallback_is_counted_when_upstream_fails` | none (0 samples in both runs; N3 chaos will produce them) |
+| RT-103 | fallback <= 200 ms | measured end to end (local, injected failures via /demo/chaos) | `services/fallback_service.py` (`wait_for(..., FALLBACK_BUDGET_S)`, timed from the failure); `tests/test_fallback.py::test_hang_served_from_cache_within_rt103`, `tests/test_chaos.py::test_error_mode_opens_circuit_and_serves_cache` | mock 2/2/2 ms (n=12, `docs/measurements/2026-11-03-chaos.md`), **live** 1/3/3 ms (n=8, `2026-11-03-chaos-live.md`); 100% ok. Hang: each of the first 3 failures cost the RT-102 timeout (er_ms 2000-2001) |
 | RT-104 | data > 180 min = UNCERTAIN | implemented (rule, not latency) | `services/freshness.py`, `models/domain.py`; `tests/test_models.py::test_uncertain_after_180_min`, `tests/test_fallback.py::test_old_cache_is_uncertain` | n/a |
 | RT-105 | end-to-end <= 6.00 s | measured end to end (local) | `services/triage_stream_service.py` (cap at 6 s), `graph/triage_graph.py` (`total_ms`); `tests/test_triage_graph.py::test_rt105_end_to_end_with_default_mock_latency` | mock 910/1100/1116 ms, **live** 156/221/221 ms (client side: mock 911/1101/1122, live 157/227/227); 100% ok |
 
-Not yet measured: concurrent load, a deployed server over a real network (N6), and RT-103 outside tests (N3).
+Not yet measured: concurrent load and a deployed server over a real network (N6). RT-103 samples come from injected failures (chaos), not a real outage.
 
 ## Done
 
@@ -61,7 +61,10 @@ Not yet measured: concurrent load, a deployed server over a real network (N6), a
 - N1 docker-compose v1 fix: env vars read directly instead of `env_file: required` `67e986b`
 - PROGRESS.md, session protocol, `/progress` command `ac424e0`
 - N2 GET /metrics: per-request records (no user text), ring buffer 1000, nearest-rank p50/p95/max + ok_rate per contract, counters, breakers `8d35a48`; 13 tests (`tests/test_metrics_service.py`, `tests/test_metrics_api.py`)
-- N2 `scripts/bench_contracts.py`, `docs/metrics.md`, first measurements mock n=30 + live n=10 `4ed0dd6`
+- N2 `scripts/bench_contracts.py`, `docs/metrics.md`, first measurements mock n=30 + live n=10 `4ed0dd6`; progress `7526d22`
+- N3 /demo/chaos (GET/POST/DELETE, EM_DEMO_CHAOS=1 only, auto-expiry, error/hang/delay at the MCP client boundary), `chaos_active` + `by_chaos` + `?recent=N` in /metrics `826f88e`; 9 tests (`tests/test_chaos.py`)
+- N3 `scripts/chaos_demo.py`, `docs/chaos.md`, RT-103 measured mock n=12 + live n=8 `2f5caa2`
+- N3 frontend Demo controls at `/?demo=1` (checked in headless Chrome: panel, buttons, CACHED badges, FALLBACK_CACHE notice) `fb8fb71`
 
 ## In progress / uncommitted
 
@@ -69,17 +72,15 @@ Not yet measured: concurrent load, a deployed server over a real network (N6), a
 
 ## Next steps
 
-1. **N3 POST /demo/chaos.** Turn failure/delay injection on and off through an MCP tool (backend still never imports mcp_server).
-   Done when: test shows chaos on -> `FALLBACK_CACHE` notice and CACHED data within RT-103, chaos off -> LIVE/MOCK again; a bench run with chaos on fills the RT-103 row with real samples.
-2. **N4 LangGraph SQLite checkpointer and GET /sessions/{id}.** Persist each triage run; return its state.
+1. **N4 LangGraph SQLite checkpointer and GET /sessions/{id}.** Persist each triage run; return its state.
    Done when: test runs a triage, then GET /sessions/{id} returns the same severity and facilities; unknown id -> 404. Ask before adding `langgraph-checkpoint-sqlite`.
-3. **N5 Real LLM client (`EM_LLM`).** Rewrite advice and extract context (location, time); rules stay the fallback and keep severity.
+2. **N5 Real LLM client (`EM_LLM`).** Rewrite advice and extract context (location, time); rules stay the fallback and keep severity.
    Done when: `EM_LLM` unset behaves exactly as today (tests unchanged); tests prove a slow/failing LLM falls back to the template within `LLM_TIMEOUT_S` and never changes severity. Ask before adding an SDK.
-4. **N6 Docker/Nginx deployment.** Public URL behind Nginx with SSE buffering off.
+3. **N6 Docker/Nginx deployment.** Public URL behind Nginx with SSE buffering off.
    Done when: `/health` returns 200 on the public URL and the stream arrives event by event (curl -N output). Tag `v1.2-online-service` after asking.
-5. **N7 Benchmark ReAct vs Plan-Execute on live data.** Reuse `eval/` agents against em-mcp-server with `EM_PROVIDER=live`.
+4. **N7 Benchmark ReAct vs Plan-Execute on live data.** Reuse `eval/` agents against em-mcp-server with `EM_PROVIDER=live`.
    Done when: a results table (latency, tool calls, RT pass rate) is in `docs/` with the command that produced it.
-6. **N8 Final report and release.** Report, demo script, tag `v1.3-final-release` (ask first). Due 2026-12-16.
+5. **N8 Final report and release.** Report, demo script, tag `v1.3-final-release` (ask first). Due 2026-12-16.
    Done when: report committed, all tests pass, tag plan approved.
 
 ## Endpoints
@@ -94,7 +95,7 @@ Not yet measured: concurrent load, a deployed server over a real network (N6), a
 | GET /otc/{cat} | built | `otc_controller.py` |
 | GET / (frontend, static) | built | mounted in `main.py` |
 | GET /metrics | built (N2) | `metrics_controller.py` |
-| POST /demo/chaos | planned (N3) | - |
+| GET/POST/DELETE /demo/chaos | built (N3), 404 unless `EM_DEMO_CHAOS=1` | `demo_chaos_controller.py` |
 | GET /sessions/{id} | planned (N4) | - |
 
 ## Known gaps and decisions
@@ -107,6 +108,8 @@ Not yet measured: concurrent load, a deployed server over a real network (N6), a
 - `docs/samples/*.xml` are pinned by `tests/test_live_provider.py`: never re-capture them without updating the tests.
 - Keys: `EM_DATA_GO_KR_KEY` (and optional `EM_DATA_GO_KR_KEY_PHARMACY`) live only in `.env` (gitignored). Never print, log or commit them.
 - Decision: RT-103 is measured from the moment of failure (after the RT-102 timeout fires), not from request start.
+- Decision: chaos is injected around the MCP client (works for mock and live); state in `clients/chaos.py`; OTC never targeted (no breaker). With chaos on under mock, totals stay ~0.5-1 s because the untargeted OTC call keeps the mock delay.
+- Demo chaos must stay off in any public deployment (N6): never set `EM_DEMO_CHAOS=1` there.
 - Decision: severity stays rule-based; an LLM may only rewrite text or extract context.
 - Decision: mock is the default provider; mock data is always labelled MOCK, live data LIVE.
 
@@ -114,5 +117,6 @@ Not yet measured: concurrent load, a deployed server over a real network (N6), a
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-03: N3 done: /demo/chaos `826f88e`, chaos_demo + RT-103 measured mock 2/2/2 ms, live 1/3/3 ms `2f5caa2`, demo controls `fb8fb71`; 259 tests pass. Next: N4 checkpointer + /sessions (ask about `langgraph-checkpoint-sqlite` first).
 - 2026-11-03: N2 done: GET /metrics `8d35a48`, bench_contracts + measurements mock n=30 / live n=10 `4ed0dd6`; all contracts measured OK except RT-103 (no samples yet); 249 tests pass. Next: N3 /demo/chaos.
 - 2026-11-03: status review; committed docker-compose v1 fix `67e986b`; added PROGRESS.md, session protocol in CLAUDE.md, `/progress` command `ac424e0`; 236 tests pass. Next: N2 /metrics.
