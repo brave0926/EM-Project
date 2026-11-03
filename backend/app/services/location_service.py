@@ -3,6 +3,8 @@ city centre. Pure: no I/O, no FastAPI. Coordinates are approximate (mock area)."
 
 from __future__ import annotations
 
+import re
+
 from backend.app.models.domain import Location, LocationSource
 from backend.app.models.llm import KnownPlace
 
@@ -10,11 +12,27 @@ CITY_CENTRE = Location(name="Chungju City Hall (approx.)", lat=36.991, lon=127.9
 STATION = Location(name="Chungju Station (approx.)", lat=36.972, lon=127.900)
 YEONSU = Location(name="Yeonsu-dong (approx.)", lat=36.957, lon=127.938)
 
-# (place, names to look for in EN/RU/ZH/KO, lower-case)
+# (place, regex stems per language). Matched on the lower-cased text with ё read as е, and again
+# with spaces removed, so "у вокзала", "в Енсу-доне", "市政府", "충주 역" all resolve.
 _PLACES: list[tuple[Location, list[str]]] = [
-    (STATION, ["chungju station", "вокзал чхунджу", "станция чхунджу", "忠州站", "충주역"]),
-    (YEONSU, ["yeonsu", "ёнсу", "연수동"]),
-    (CITY_CENTRE, ["city hall", "мэрия", "忠州市政府", "충주시청", "시청"]),
+    (STATION, [
+        r"chungju station", r"train station",                   # EN
+        r"вокзал", r"станци\w* чхунджу",                         # RU: вокзал/вокзала/вокзале...
+        r"忠州站", r"火[车車]站",                                   # ZH
+        r"충주역", r"기차역",                                      # KO
+    ]),
+    (YEONSU, [
+        r"yeonsu",                                               # EN
+        r"[её]нсу", r"йонсу",                                    # RU: Ёнсу-дон / Енсу-доне
+        r"[莲蓮]水",                                              # ZH: 莲水洞 / 蓮水洞
+        r"연수동",                                                # KO (not "연수": also "training")
+    ]),
+    (CITY_CENTRE, [
+        r"city hall",                                            # EN
+        r"мэри[яиюей]", r"ратуш",                                # RU: мэрия/мэрии/мэрию/мэрией
+        r"市政府", r"市[厅廳]",                                     # ZH: with or without 忠州
+        r"시청",                                                  # KO: 충주시청, 시청 근처
+    ]),
 ]
 # The ids the LLM may name (models/llm.KnownPlace): it never supplies coordinates itself.
 KNOWN_PLACES: dict[KnownPlace, Location] = {
@@ -31,8 +49,9 @@ def known_place(place: KnownPlace) -> Location:
 def resolve_location(text: str, lat: float | None = None, lon: float | None = None) -> tuple[Location, LocationSource]:
     if lat is not None and lon is not None:
         return Location(name="user", lat=lat, lon=lon), "request"
-    lowered = text.lower()
-    for place, names in _PLACES:
-        if any(n in lowered for n in names):
+    lowered = text.lower().replace("ё", "е")
+    compact = re.sub(r"\s+", "", lowered)
+    for place, patterns in _PLACES:
+        if any(re.search(p, lowered) or re.search(p, compact) for p in patterns):
             return place, "text"
     return CITY_CENTRE, "default"

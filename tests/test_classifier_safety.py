@@ -12,7 +12,7 @@ import pytest
 
 from backend.app.models.enums import Category, Severity
 from backend.app.services.classifier_service import classify
-from backend.app.services.location_service import CITY_CENTRE, STATION, YEONSU
+from backend.app.services.location_service import CITY_CENTRE, STATION, YEONSU, resolve_location
 
 ROOT = Path(__file__).resolve().parents[1]
 LANGS = ("en", "ru", "zh", "ko")
@@ -40,6 +40,27 @@ def test_demo_chips_are_four_per_language():
 def test_demo_chip_has_one_severity_in_every_language(index):
     severities = {lang: classify(CHIPS[lang][index]).severity for lang in LANGS}
     assert set(severities.values()) == {EXPECTED[index][0]}, severities
+
+
+@pytest.mark.parametrize(("lang", "index"), [(lang, i) for lang in LANGS for i in range(len(EXPECTED))])
+def test_demo_chip_place_is_found_by_text(lang, index):
+    location, source = resolve_location(CHIPS[lang][index])
+    assert (location, source) == (EXPECTED[index][1], "text")
+
+
+@pytest.mark.parametrize(("text", "place"), [
+    ("у вокзала Чхунджу", STATION), ("на вокзале", STATION), ("у мэрии", CITY_CENTRE), ("возле мэрии", CITY_CENTRE),
+    ("в Ёнсу-доне", YEONSU), ("в Енсу-доне", YEONSU), ("莲水洞", YEONSU), ("蓮水洞附近", YEONSU),
+    ("市政府附近", CITY_CENTRE), ("忠州站", STATION), ("火车站", STATION), ("충주 역 근처", STATION),
+    ("연수 동", YEONSU), ("시청 앞", CITY_CENTRE), ("near the train station", STATION),
+])
+def test_place_aliases(text, place):
+    assert resolve_location(text) == (place, "text")
+
+
+@pytest.mark.parametrize("text", ["somewhere", "연수 받는 중", "дома", "在家"])
+def test_no_place_named_is_default(text):
+    assert resolve_location(text) == (CITY_CENTRE, "default")
 
 
 DANGER = {  # never GREEN (AMBER or RED)
@@ -88,3 +109,16 @@ def test_unclear_text_is_amber(text):
 @pytest.mark.parametrize("text", ["небольшой ожог", "小烫伤", "작은 화상", "small burn", "У ребёнка жаром 38"])
 def test_minor_cases_can_still_be_green(text):
     assert classify(text).severity is Severity.GREEN  # the fix must not turn everything AMBER
+
+
+@pytest.mark.asyncio
+async def test_demo_chips_through_the_graph_have_no_location_default(use_mcp):
+    from backend.app.graph.triage_graph import run_triage
+    from backend.app.models.enums import Notice
+
+    use_mcp()
+    for lang in LANGS:
+        for index, text in enumerate(CHIPS[lang]):
+            out = await run_triage(text)
+            assert out.location_source == "text" and Notice.LOCATION_DEFAULT not in out.notices, (lang, index)
+            assert out.severity is EXPECTED[index][0], (lang, index)
