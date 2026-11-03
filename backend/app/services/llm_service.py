@@ -15,7 +15,7 @@ from time import perf_counter
 
 from pydantic import ValidationError
 
-from backend.app.clients.llm_client import get_llm_client
+from backend.app.clients.llm_client import SELECT_MAX_IDS, get_llm_client
 from backend.app.core.config import END_TO_END_S, LLM_RESERVE_S, LLM_REWRITE_MAX_CHARS, LLM_TIMEOUT_S
 from backend.app.models.enums import Language, LlmOutcome
 from backend.app.models.llm import LlmContext, LlmJob
@@ -109,3 +109,33 @@ async def extract_context(query: str, language: Language) -> tuple[LlmContext | 
     did not find; a place is a known place id, never coordinates."""
     ctx, job = await _run("extract", lambda: get_llm_client().extract_context(query, language), parse_context)
     return (ctx if isinstance(ctx, LlmContext) else None), job
+
+
+def parse_selection(raw: str, allowed: Sequence[str], steps: Sequence[str]) -> list[str]:
+    """Strict: a JSON list of ids (or {"ids": [...]}) with 1..SELECT_MAX_IDS distinct ids, all from
+    allowed, at least one of them a step. Anything else is invalid."""
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        raise _Invalid from None
+    if isinstance(data, dict) and set(data) == {"ids"}:
+        data = data["ids"]
+    if not isinstance(data, list) or not all(isinstance(i, str) for i in data):
+        raise _Invalid
+    if not 1 <= len(data) <= SELECT_MAX_IDS or len(set(data)) != len(data):
+        raise _Invalid
+    if not set(data) <= set(allowed) or not set(data) & set(steps):
+        raise _Invalid
+    return data
+
+
+async def select_items(query: str, language: Language, items: Sequence[tuple[str, str]],
+                       steps: Sequence[str]) -> tuple[list[str] | None, LlmJob]:
+    """(ids the LLM picked from items, or None, job). The caller keeps the full entry on None."""
+    allowed = [item_id for item_id, _ in items]
+    ids, job = await _run(
+        "select",
+        lambda: get_llm_client().select_items(query, language, list(items)),
+        lambda out: parse_selection(out, allowed, steps),
+    )
+    return (ids if isinstance(ids, list) else None), job

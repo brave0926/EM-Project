@@ -138,6 +138,11 @@ def _matches(text: str, words: Words) -> bool:
     )
 
 
+def matches_terms(text: str, english: list[str], russian: list[str], cjk: list[str]) -> bool:
+    """Same matching as the keyword tables (whole EN words, RU stems, CJK without spaces)."""
+    return _matches(text, Words(english=english, russian=russian, cjk=[w.replace(" ", "") for w in cjk]))
+
+
 def max_temperature_c(text: str) -> float | None:
     temps = [float(t.replace(",", ".")) for t in _TEMPERATURE.findall(text)]
     temps = [t for t in temps if 34.0 <= t <= 44.0]  # plausible body temperatures only

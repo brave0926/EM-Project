@@ -10,10 +10,10 @@ def _server(**kwargs):
 
 
 @pytest.mark.asyncio
-async def test_lists_three_tools():
+async def test_lists_four_tools():
     async with Client(_server()) as client:
         names = {t.name for t in (await client.list_tools()).tools}
-    assert names == {"get_er_beds", "get_pharmacies", "get_otc"}
+    assert names == {"get_er_beds", "get_pharmacies", "get_otc", "get_first_aid"}
 
 
 @pytest.mark.asyncio

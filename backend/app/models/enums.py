@@ -46,6 +46,7 @@ class Notice(StrEnum):
     FALLBACK_CACHE = "FALLBACK_CACHE"  # live lookup failed: last saved data shown
     NO_DATA = "NO_DATA"  # live lookup failed and nothing is saved
     LLM_FALLBACK = "LLM_FALLBACK"  # the LLM was expected but failed: rules/template used instead
+    FIRST_AID_UNAVAILABLE = "FIRST_AID_UNAVAILABLE"  # first-aid guide not loaded: the advice template stands
 
 
 class LlmOutcome(StrEnum):

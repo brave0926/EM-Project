@@ -19,7 +19,8 @@ from backend.app.clients.chaos import get_chaos_store
 from backend.app.core.config import TOOL_TIMEOUT_S, demo_chaos_enabled, settings
 from backend.app.models.chaos import ChaosMode
 from backend.app.models.domain import ERFacility, Location, PharmacyFacility
-from backend.app.models.enums import Category
+from backend.app.models.enums import Category, Language
+from backend.app.models.first_aid import FirstAidGuide
 
 T = TypeVar("T")
 CLOSE_GRACE_S = 1.0  # time allowed for a clean close before cancelling
@@ -28,6 +29,7 @@ ErrorCode = Literal["UNAVAILABLE", "TIMEOUT", "TOOL_ERROR", "BAD_RESPONSE"]
 _ERS = TypeAdapter(list[ERFacility])
 _PHARMACIES = TypeAdapter(list[PharmacyFacility])
 _ITEMS = TypeAdapter(list[str])
+_GUIDE = TypeAdapter(FirstAidGuide)
 
 
 class McpClientError(Exception):
@@ -132,18 +134,23 @@ class McpClient:
     async def get_otc(self, category: Category) -> list[str]:
         return await self._call("get_otc", {"category": category.value}, _ITEMS)
 
-    async def _call(self, tool: str, args: dict[str, Any], adapter: TypeAdapter[T]) -> T:
+    async def get_first_aid(self, category: Category, language: Language) -> FirstAidGuide:
+        args = {"category": category.value, "language": language.value}
+        return await self._call("get_first_aid", args, _GUIDE, wrapped=False)  # a model comes unwrapped
+
+    async def _call(self, tool: str, args: dict[str, Any], adapter: TypeAdapter[T], wrapped: bool = True) -> T:
+        """wrapped: MCP puts list (and other non-object) results under "result"; models come as is."""
         # One RT-102 budget covers connect, the call and the single reconnect.
         deadline = asyncio.get_running_loop().time() + self.timeout_s
         try:
-            return await self._call_once(tool, args, adapter, deadline)
+            return await self._call_once(tool, args, adapter, deadline, wrapped)
         except McpClientError as exc:
             if exc.code != "UNAVAILABLE":
                 raise
             # Connection dropped: close the one this call used (a parallel call may already
             # have opened a newer one), then try once more.
             await self._close(exc.connection)
-        return await self._call_once(tool, args, adapter, deadline)
+        return await self._call_once(tool, args, adapter, deadline, wrapped)
 
     def _remaining(self, tool: str, deadline: float) -> float:
         left = deadline - asyncio.get_running_loop().time()
@@ -151,7 +158,9 @@ class McpClient:
             raise McpClientError("TIMEOUT", f"{tool}: no answer within {self.timeout_s:.2f} s")
         return left
 
-    async def _call_once(self, tool: str, args: dict[str, Any], adapter: TypeAdapter[T], deadline: float) -> T:
+    async def _call_once(
+        self, tool: str, args: dict[str, Any], adapter: TypeAdapter[T], deadline: float, wrapped: bool = True
+    ) -> T:
         owner = await self.connect(self._remaining(tool, deadline))
         client = self._client
         if client is None:
@@ -167,7 +176,8 @@ class McpClient:
             text = " ".join(getattr(c, "text", "") for c in result.content)
             raise McpClientError("TOOL_ERROR", f"{tool}: {text}")
         try:
-            return adapter.validate_python((result.structured_content or {})["result"])
+            content = result.structured_content or {}
+            return adapter.validate_python(content["result"] if wrapped else content)
         except (KeyError, ValidationError) as exc:
             raise McpClientError("BAD_RESPONSE", f"{tool}: {exc}") from exc
 
@@ -198,6 +208,9 @@ class ChaosMcpClient:
 
     async def get_otc(self, category: Category) -> list[str]:
         return await self._inner.get_otc(category)
+
+    async def get_first_aid(self, category: Category, language: Language) -> FirstAidGuide:
+        return await self._inner.get_first_aid(category, language)  # static data: never targeted
 
     async def _apply(self, tool: str, name: str, call: Any) -> Any:
         rule = get_chaos_store().rule(tool)

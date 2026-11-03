@@ -1,7 +1,8 @@
 """LLM port and clients. No FastAPI, no mcp_server imports; never logs the key or user text.
 
-Two jobs only: rewrite_advice (template advice -> clearer text, same language) and
-extract_context (user query -> JSON {"time", "place"}). Clients return raw text; validation,
+Three jobs only: rewrite_advice (template advice -> clearer text, same language),
+extract_context (user query -> JSON {"time", "place"}) and select_items (user query + first-aid
+item ids from the knowledge base -> JSON {"ids": [...]}, ids only, never text). Clients return raw text; validation,
 budgets and fallbacks live in services/llm_service.py.
 
     EM_LLM=anthropic + ANTHROPIC_API_KEY -> AnthropicLlm (EM_LLM_MODEL, default claude-haiku-5-5)
@@ -53,6 +54,21 @@ EXTRACT_SCHEMA: dict[str, Any] = {
 }
 
 
+SELECT_SYSTEM = """You choose which first-aid items from a fixed list fit a person's emergency message.
+Return JSON {{"ids": [...]}} with 1 to {max_ids} ids copied exactly from the list, in any order.
+Choose only ids that appear in <items>. Never write advice, explanations or new ids."""
+SELECT_MAX_IDS = 8
+
+
+def select_schema(ids: list[str]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {"ids": {"type": "array", "items": {"type": "string", "enum": ids}}},
+        "required": ["ids"],
+        "additionalProperties": False,
+    }
+
+
 class LlmError(Exception):
     """The LLM answered but not usably (refusal, no text). Message: a short code, never user text."""
 
@@ -68,6 +84,10 @@ class LlmClient(ABC):
         """Return JSON text {"time": "HH:MM" | null, "place": <known place> | null}."""
         raise NotImplementedError
 
+    async def select_items(self, query: str, language: Language, items: list[tuple[str, str]]) -> str:
+        """Return JSON text {"ids": [...]} (or a plain list) with ids picked from items (id, text)."""
+        raise NotImplementedError
+
 
 class NoLlm(LlmClient):
     enabled = False
@@ -77,6 +97,9 @@ class NoLlm(LlmClient):
 
     async def extract_context(self, query: str, language: Language) -> str:
         return json.dumps({"time": None, "place": None})
+
+    async def select_items(self, query: str, language: Language, items: list[tuple[str, str]]) -> str:
+        return json.dumps({"ids": []})
 
 
 class AnthropicLlm(LlmClient):
@@ -105,6 +128,20 @@ class AnthropicLlm(LlmClient):
             thinking={"type": "disabled"},
             output_config={"effort": "low", "format": {"type": "json_schema", "schema": EXTRACT_SCHEMA}},
             messages=[{"role": "user", "content": f"<message lang=\"{language.value}\">\n{query}\n</message>"}],
+        )
+        return _text(response)
+
+    async def select_items(self, query: str, language: Language, items: list[tuple[str, str]]) -> str:
+        listing = "\n".join(f"{item_id}: {text}" for item_id, text in items)
+        response = await self._client.messages.create(
+            model=self.model,
+            max_tokens=200,
+            system=SELECT_SYSTEM.format(max_ids=SELECT_MAX_IDS),
+            thinking={"type": "disabled"},
+            output_config={"effort": "low", "format": {"type": "json_schema",
+                                                       "schema": select_schema([i for i, _ in items])}},
+            messages=[{"role": "user", "content": f"<message lang=\"{language.value}\">\n{query}\n</message>\n"
+                                                  f"<items>\n{listing}\n</items>"}],
         )
         return _text(response)
 
@@ -146,6 +183,9 @@ class ChaosLlmClient(LlmClient):
 
     async def extract_context(self, query: str, language: Language) -> str:
         return await self._apply(lambda: self._inner.extract_context(query, language))
+
+    async def select_items(self, query: str, language: Language, items: list[tuple[str, str]]) -> str:
+        return await self._apply(lambda: self._inner.select_items(query, language, items))
 
 
 def build_llm_client() -> LlmClient:

@@ -18,6 +18,7 @@ from time import perf_counter
 from backend.app.clients.chaos import get_chaos_store
 from backend.app.core.config import demo_chaos_enabled
 from backend.app.models.enums import LlmOutcome
+from backend.app.models.first_aid import FirstAidStats
 from backend.app.models.llm import LlmStats
 
 _WORST_FIRST = (LlmOutcome.ERROR, LlmOutcome.TIMEOUT, LlmOutcome.INVALID, LlmOutcome.OK)
@@ -31,6 +32,7 @@ class RequestTiming:
     started: float = field(default_factory=perf_counter)
     llm_ms: dict[str, int] = field(default_factory=dict)  # job (extract, rewrite) -> ms
     llm_outcomes: dict[str, LlmOutcome] = field(default_factory=dict)  # job -> outcome (calls made)
+    first_aid: FirstAidStats | None = None  # set by first_aid_service
 
     def elapsed_s(self) -> float:
         return perf_counter() - self.started
@@ -38,7 +40,8 @@ class RequestTiming:
     def llm_stats(self) -> LlmStats:
         ran = [o for o in self.llm_outcomes.values() if o is not LlmOutcome.OFF]
         outcome = next((o for o in _WORST_FIRST if o in ran), LlmOutcome.OFF)
-        return LlmStats(extract_ms=self.llm_ms.get("extract"), rewrite_ms=self.llm_ms.get("rewrite"), outcome=outcome)
+        return LlmStats(extract_ms=self.llm_ms.get("extract"), rewrite_ms=self.llm_ms.get("rewrite"),
+                        select_ms=self.llm_ms.get("select"), outcome=outcome)
 
 
 def chaos_active() -> bool:
@@ -79,6 +82,12 @@ def note_llm(job: str, ms: int | None, outcome: LlmOutcome) -> None:
         if ms is not None:
             timing.llm_ms[job] = ms
         timing.llm_outcomes[job] = outcome
+
+
+def note_first_aid(stats: FirstAidStats) -> None:
+    timing = _current.get()
+    if timing is not None:
+        timing.first_aid = stats
 
 
 def note_fallback(ms: int) -> None:

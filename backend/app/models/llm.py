@@ -32,4 +32,5 @@ class LlmStats(BaseModel):
 
     extract_ms: int | None = Field(default=None, ge=0)
     rewrite_ms: int | None = Field(default=None, ge=0)
+    select_ms: int | None = Field(default=None, ge=0)  # first-aid item selection
     outcome: LlmOutcome = LlmOutcome.OFF  # worst of the jobs that ran: error > timeout > invalid > ok
