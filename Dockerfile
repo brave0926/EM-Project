@@ -14,3 +14,7 @@ COPY mcp_server ./mcp_server
 COPY frontend ./frontend
 
 EXPOSE 8000 8001
+COPY scripts/start_container.sh ./scripts/start_container.sh
+
+# Default: both processes in one container (Render sets $PORT). Compose overrides per service.
+CMD ["sh", "scripts/start_container.sh"]

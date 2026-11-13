@@ -5,7 +5,7 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 ## Snapshot
 
-- Date: 2026-11-03 (W6). Deadline: 2026-12-16.
+- Date: 2026-11-13 (W7). Deadline: 2026-12-16.
 - Branch: `main`
 - Last commit: the `docs(progress)` commit for N6; before it `c687a5e docs(first-aid): ...`
 - Origin: `origin/main` = `11875c4` (pushed 2026-11-03); local is ahead by 9 (N6, not pushed)
@@ -75,6 +75,7 @@ Not yet measured: concurrent load and a deployed server over a real network (N7)
 ## In progress / uncommitted
 
 - Open from N5: one real run once `ANTHROPIC_API_KEY` is in `.env`: `python scripts/llm_smoke.py --all-langs`, then `EM_LLM=anthropic scripts/run_dev.sh` + `python scripts/llm_smoke.py --chips http://127.0.0.1:8000`; record latency/outcome per job here.
+- N7 on Render: image now has a default CMD `scripts/start_container.sh` (MCP on 127.0.0.1:8001, API on 0.0.0.0:$PORT); fixes "Application exited early" (no CMD -> python3 exited). Verified locally: `docker run -e PORT=10000` -> /health 200, /facilities/er 200 via MCP. Public Render URL unverified.
 - `docs/progress_archive.md` does not exist yet (created when the log passes 10 lines).
 
 ## Next steps
@@ -130,6 +131,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-13: Render deploy failed with "Application exited early": Dockerfile had no CMD. Added single-container start script + CMD; local docker run with $PORT serves /health and /facilities/er. Next: redeploy on Render and check the public URL (N7).
 - 2026-11-03: N6 first-aid agent done (`bfbd2bc`..`c687a5e`): curated KB (15 entries, 4 languages, verified sources), MCP tool, parallel worker, SSE/API card, LLM id selection, high-risk categories, generic entry, 30 scenarios x 6 modes; 1043 tests pass; not pushed. Next: N7 deployment.
 - 2026-11-03: fever + headache AMBER in all languages `ba2d092`; `minor` category + green sore-throat demo chip; 446 tests pass; pushed main. Next: N6 (or the N5 real-key run).
 - 2026-11-03: N5c done: ZH deep-cut chip GREEN -> AMBER and danger phrases covered in 4 languages `4d2e47a`; RU/ZH/KO place aliases `736d175`; 16/16 chips consistent with a text place; 423 tests pass. Next: N6 (or the N5 real-key run).
