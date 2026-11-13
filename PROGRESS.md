@@ -131,6 +131,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-13: frontend: time no longer expected in the message (hint, placeholder, chips without times in EN/RU/ZH/KO); live Korea-time clock; pharmacy list says "Open now (HH:MM Korea time)" or "Open at HH:MM (time from your message)". Checked in headless Chrome (EN/KO, no time and explicit 2 AM); 1043 tests pass.
 - 2026-11-13: Render deploy failed with "Application exited early": Dockerfile had no CMD. Added single-container start script + CMD; local docker run with $PORT serves /health and /facilities/er. Next: redeploy on Render and check the public URL (N7).
 - 2026-11-03: N6 first-aid agent done (`bfbd2bc`..`c687a5e`): curated KB (15 entries, 4 languages, verified sources), MCP tool, parallel worker, SSE/API card, LLM id selection, high-risk categories, generic entry, 30 scenarios x 6 modes; 1043 tests pass; not pushed. Next: N7 deployment.
 - 2026-11-03: fever + headache AMBER in all languages `ba2d092`; `minor` category + green sore-throat demo chip; 446 tests pass; pushed main. Next: N6 (or the N5 real-key run).
