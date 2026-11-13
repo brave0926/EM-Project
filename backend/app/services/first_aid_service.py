@@ -39,7 +39,7 @@ def matched_warning_signs(query: str, guide: FirstAidGuide) -> list[str]:
 async def get_card(query: str, triage: TriageResult, language: Language) -> tuple[FirstAidCard | None, list[Notice]]:
     t0 = perf_counter()
     try:
-        guide = await get_mcp_client().get_first_aid(entry_category(triage), language)
+        guide = await get_mcp_client().get_first_aid(entry_category(triage), language, triage.patient)
     except Exception as exc:  # MCP error, timeout, bad response: the class name only
         log.warning("first aid lookup failed: %s", type(exc).__name__)
         request_timing.note_first_aid(FirstAidStats(ms=_ms(t0), outcome="unavailable"))

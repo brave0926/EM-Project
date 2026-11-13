@@ -10,7 +10,7 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 - Last commit: `c6fc341 fix(deploy): default container CMD ...` (then this progress update)
 - Origin: `origin/main` = `c6fc341` (pushed 2026-11-13); in sync
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
-- Tests: 1043 passed (`uv run pytest -q`, 2026-11-03)
+- Tests: 1218 passed (`uv run pytest -q`, 2026-11-13)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 - LLM: off by default; `EM_LLM=anthropic` + `ANTHROPIC_API_KEY` (`docs/llm.md`). No key in `.env` yet: real API run unverified
@@ -131,6 +131,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-13: who is hurt (self/other/unknown) from the text (`patient_service`, EN/RU/ZH/KO rules); first-aid KB `self` texts for 26 helper-worded items, `critical_self` advice line, `patient` in SSE triage event; wording only, severity unchanged. 1218 tests pass (`tests/test_patient.py`, KB + graph tests). Self texts are unreviewed drafts.
 - 2026-11-13: frontend: time no longer expected in the message (hint, placeholder, chips without times in EN/RU/ZH/KO); live Korea-time clock; pharmacy list says "Open now (HH:MM Korea time)" or "Open at HH:MM (time from your message)". Checked in headless Chrome (EN/KO, no time and explicit 2 AM); 1043 tests pass.
 - 2026-11-13: Render deploy failed with "Application exited early": Dockerfile had no CMD. Added single-container start script + CMD; local docker run with $PORT serves /health and /facilities/er. Next: redeploy on Render and check the public URL (N7).
 - 2026-11-03: N6 first-aid agent done (`bfbd2bc`..`c687a5e`): curated KB (15 entries, 4 languages, verified sources), MCP tool, parallel worker, SSE/API card, LLM id selection, high-risk categories, generic entry, 30 scenarios x 6 modes; 1043 tests pass; not pushed. Next: N7 deployment.

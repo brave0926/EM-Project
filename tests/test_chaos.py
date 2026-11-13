@@ -43,7 +43,7 @@ class FakeMcp:
         self.calls["otc"] += 1
         return ["Sterile dressing"]
 
-    async def get_first_aid(self, category, language):
+    async def get_first_aid(self, category, language, patient=None):
         from mcp_server.first_aid import guide  # the static knowledge base, like the real tool
 
         return guide(category.value, language.value)

@@ -23,6 +23,8 @@ def all_texts():
         for i in items(entry):
             for lang in LANGUAGES:
                 yield f"{name}/{i['id']}/{lang}", i["text"][lang]
+                if "self" in i:
+                    yield f"{name}/{i['id']}/self/{lang}", i["self"][lang]
     for key, texts in KB["common"].items():
         for lang in LANGUAGES:
             yield f"common/{key}/{lang}", texts[lang]
@@ -46,6 +48,9 @@ def test_entry_shape(name):
     for i in items(entry):
         assert i["id"].startswith(f"{name}.") and re.fullmatch(r"[a-z_]+\.[a-z0-9_]+", i["id"])
         assert i["text"].keys() == set(LANGUAGES) and all(i["text"][lang].strip() for lang in LANGUAGES)
+        assert set(i) <= {"id", "text", "self", "match"}
+        if "self" in i:  # wording for the injured person (patient=self)
+            assert i["self"].keys() == set(LANGUAGES) and all(i["self"][lang].strip() for lang in LANGUAGES)
     for w in entry["warning_signs"]:
         assert w["match"].keys() == {"en", "ru", "cjk"}
         for pattern in w["match"]["ru"]:
@@ -80,3 +85,23 @@ def test_common_lines_in_every_language():
                                  "ибупрофен", "antibiotics", "진단"])
 def test_validator_catches_bad_text(bad):
     assert content_safety.problems(bad)
+
+
+# Helper wording ("the person", "them") must have a self version, so a writer who is the injured
+# person is never told to look after someone else.
+HELPER_EN = re.compile(r"\b(the person|them|their|they)\b", re.I)
+
+
+def test_helper_wording_has_a_self_version():
+    missing = [i["id"] for entry in ENTRIES.values() for i in items(entry)
+               if HELPER_EN.search(i["text"]["en"]) and "self" not in i]
+    assert missing == []
+
+
+def test_self_versions_are_not_helper_wording():
+    for entry in ENTRIES.values():
+        for i in items(entry):
+            if "self" in i:
+                assert not re.search(r"\bthe person\b", i["self"]["en"], re.I), i["id"]
+                assert "患者" not in i["self"]["zh"] and "환자" not in i["self"]["ko"], i["id"]
+                assert "человек" not in i["self"]["ru"], i["id"]

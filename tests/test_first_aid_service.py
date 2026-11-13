@@ -77,7 +77,7 @@ async def test_red_gets_the_minimal_entry_and_no_llm_call(use_mcp):
 @pytest.mark.asyncio
 async def test_failure_gives_notice_and_no_card():
     class Broken:
-        async def get_first_aid(self, category, language):
+        async def get_first_aid(self, category, language, patient=None):
             raise McpClientError("UNAVAILABLE", "down")
 
     set_mcp_client(Broken())

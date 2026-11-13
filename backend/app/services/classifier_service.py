@@ -13,6 +13,7 @@ from typing import NamedTuple
 
 from backend.app.models.domain import TriageResult
 from backend.app.models.enums import Category, Severity
+from backend.app.services import patient_service
 
 HIGH_FEVER_C = 39.5
 
@@ -228,6 +229,11 @@ def max_temperature_c(text: str) -> float | None:
 
 
 def classify(text: str) -> TriageResult:
+    """Category and severity from the keyword rules; who is hurt from patient_service (wording only)."""
+    return _classify(text).model_copy(update={"patient": patient_service.detect_patient(text)})
+
+
+def _classify(text: str) -> TriageResult:
     lowered = text.lower()
     category = next((c for c in _PRIORITY if _matches(lowered, _KEYWORDS[c])), Category.OTHER)
     critical = category is Category.CRITICAL or _matches(lowered, _KEYWORDS[Category.CRITICAL])

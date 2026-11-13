@@ -160,7 +160,7 @@ s.innerHTML=d.prompt_119?'<span class="p119">'+esc(d.prompt_119)+'</span><a clas
 var pl=PLACES.filter(function(p){return p.id===$("place").value})[0],nm=d.location.name==="user"?(geo||!pl?t.you:pl.n[cur]):d.location.name;
 var f=$("from");f.style.display="block";f.className=d.location.source==="default"?"warn":"";f.textContent=fmt(t.from,{n:nm,s:t.src[d.location.source]||d.location.source})+(d.location.source==="default"?" "+t.defWarn:"");
 if(d.severity==="red")$("pharm").innerHTML='<div class="empty">'+esc(t.redPh)+'</div>';
-lg("triage: "+d.severity+" / "+d.category+" / "+d.language+(d.call_119?" / CALL 119":""))},
+lg("triage: "+d.severity+" / "+d.category+" / "+d.language+(d.patient?" / patient "+d.patient:"")+(d.call_119?" / CALL 119":""))},
 er:function(d){tag(d.facilities);var best=d.facilities.findIndex(function(e){return e.hvec>0});
 $("hosp").innerHTML=d.facilities.map(function(e,i){var bd=e.hvec>0?"<b style='display:inline;color:var(--em)'>"+e.hvec+" "+t.beds+"</b>":"<b style='display:inline;color:var(--rd)'>"+t.nob+"</b>";
 return '<div class="item'+(i===best?" best":"")+'"><b>'+esc(e.name)+'</b>'+badges(e)+dist(e)+" &bull; "+bd+'<br><span>'+esc(age(e.fetched_at))+'</span>'+phone(e.tel)+'</div>'}).join("");

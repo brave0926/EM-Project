@@ -15,7 +15,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 
 from backend.app.core.env import load_env
 from backend.app.models.domain import ERFacility, Location, PharmacyFacility
-from backend.app.models.enums import Category, Language
+from backend.app.models.enums import Category, Language, Patient
 from backend.app.models.first_aid import FirstAidGuide
 from mcp_server import first_aid
 from mcp_server.providers import DataProvider, ProviderError, get_provider
@@ -61,11 +61,14 @@ def build_server(provider: DataProvider | None = None) -> MCPServer:
     @server.tool(
         description="First-aid guide for a category in en/ru/zh/ko from the curated knowledge base: steps, "
         "do_not, warning_signs, otc_types (product types only), sources. The generic entry when the "
-        "category has none. Static data, never generated."
+        "category has none. patient=self words the items to the injured person (else to a helper). "
+        "Static data, never generated."
     )
-    async def get_first_aid(category: Category, language: Language) -> FirstAidGuide:
+    async def get_first_aid(
+        category: Category, language: Language, patient: Patient = Patient.UNKNOWN
+    ) -> FirstAidGuide:
         try:
-            return first_aid.guide(category.value, language.value)
+            return first_aid.guide(category.value, language.value, patient.value)
         except KeyError as exc:
             raise ToolError(f"NOT_FOUND: no first-aid entry for {category.value}") from exc
 

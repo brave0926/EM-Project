@@ -20,17 +20,22 @@ def load_kb(path: Path = KB_PATH) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def guide(category: str, language: str) -> FirstAidGuide:
+def guide(category: str, language: str, patient: str = "unknown") -> FirstAidGuide:
     """The entry for the category in one language; the generic entry when there is none.
-    KeyError when neither exists."""
+    patient "self": items written to the injured person (their "self" text) where the entry has one;
+    "other"/"unknown": the helper wording. KeyError when neither entry exists."""
     kb = load_kb()
     entries = kb["entries"]
     name = category if category in entries else "generic"
     entry = entries[name]  # KeyError: no entry and no generic one
     common = kb["common"]
 
+    def text(item: dict[str, Any]) -> str:
+        texts = item.get("self") if patient == "self" else None
+        return (texts or item["text"])[language]
+
     def items(section: str) -> list[FirstAidItem]:
-        return [FirstAidItem(id=i["id"], text=i["text"][language]) for i in entry[section]]
+        return [FirstAidItem(id=i["id"], text=text(i)) for i in entry[section]]
 
     otc = items("otc_types")
     return FirstAidGuide(
@@ -40,7 +45,7 @@ def guide(category: str, language: str) -> FirstAidGuide:
         steps=items("steps"),
         do_not=items("do_not"),
         warning_signs=[
-            WarningSign(id=w["id"], text=w["text"][language], match_en=w["match"]["en"],
+            WarningSign(id=w["id"], text=text(w), match_en=w["match"]["en"],
                         match_ru=w["match"]["ru"], match_cjk=w["match"]["cjk"])
             for w in entry["warning_signs"]
         ],

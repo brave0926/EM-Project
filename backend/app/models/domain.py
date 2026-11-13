@@ -9,7 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from backend.app.models.enums import Category, DataStatus, Language, Notice, Severity
+from backend.app.models.enums import Category, DataStatus, Language, Notice, Patient, Severity
 from backend.app.models.first_aid import FirstAidCard
 # Allowed exception to one-way imports: RT-104 is a model invariant (see CLAUDE.md).
 from backend.app.services.freshness import freshness_status
@@ -58,6 +58,7 @@ class TriageResult(BaseModel):
     category: Category
     severity: Severity
     call_119: bool
+    patient: Patient = Patient.UNKNOWN  # who is hurt: changes wording only, never severity
 
 
 LocationSource = Literal["request", "text", "llm", "default"]  # llm: a known place named by the LLM

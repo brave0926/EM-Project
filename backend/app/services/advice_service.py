@@ -7,7 +7,7 @@ as the fallback on any error, timeout or invalid rewrite. Not medical advice.
 from __future__ import annotations
 
 from backend.app.models.domain import ERFacility, PharmacyFacility, TriageResult
-from backend.app.models.enums import Category, DataStatus, Language, Notice, Severity
+from backend.app.models.enums import Category, DataStatus, Language, Notice, Patient, Severity
 from backend.app.services import llm_service
 
 _T: dict[Language, dict[str, str]] = {
@@ -16,6 +16,7 @@ _T: dict[Language, dict[str, str]] = {
         "amber": "Get medical care soon: go to an ER or clinic.",
         "green": "This can usually be handled with first aid. Visit a pharmacy if needed.",
         "critical": "Stay with the person, keep them still and follow the 119 dispatcher. If they are not breathing and you are trained, start CPR.",
+        "critical_self": "Stay still, sit or lie down and follow the 119 dispatcher. Tell someone nearby and do not stay alone; unlock the door if you can.",
         "burn": "Cool the burn under cool (not ice-cold) running water for 20 minutes. Remove rings or tight items nearby. Cover loosely with a clean non-stick dressing. Do not apply ice, butter or toothpaste.",
         "cut": "Press firmly on the wound with a clean cloth for 10 minutes. Rinse with clean water or saline, then cover with a sterile dressing.",
         "fever": "Rest and drink fluids. A fever reducer can be used as labelled. See a doctor if the fever is 39.5 °C or higher, lasts more than 3 days, or comes with a stiff neck, rash or confusion.",
@@ -43,6 +44,7 @@ _T: dict[Language, dict[str, str]] = {
         "amber": "Нужна медицинская помощь в ближайшее время: обратитесь в отделение неотложной помощи или клинику.",
         "green": "Обычно достаточно первой помощи. При необходимости зайдите в аптеку.",
         "critical": "Оставайтесь рядом с человеком, не двигайте его и следуйте указаниям диспетчера 119. Если человек не дышит и вы обучены, начните СЛР.",
+        "critical_self": "Не двигайтесь, сядьте или лягте и следуйте указаниям диспетчера 119. Скажите кому-нибудь рядом и не оставайтесь одни; если можете, откройте входную дверь.",
         "burn": "Охлаждайте ожог под прохладной (не ледяной) проточной водой 20 минут. Снимите кольца и тесные вещи рядом с ожогом. Свободно накройте чистой неприлипающей повязкой. Не наносите лёд, масло или зубную пасту.",
         "cut": "Плотно прижмите рану чистой тканью на 10 минут. Промойте чистой водой или физраствором и закройте стерильной повязкой.",
         "fever": "Отдыхайте и пейте больше жидкости. Жаропонижающее можно принять согласно инструкции. Обратитесь к врачу, если температура 39,5 °C или выше, держится больше 3 дней или есть ригидность шеи, сыпь или спутанность сознания.",
@@ -70,6 +72,7 @@ _T: dict[Language, dict[str, str]] = {
         "amber": "请尽快就医：前往急诊室或诊所。",
         "green": "通常可以用急救处理。如有需要，请去药店。",
         "critical": "请陪在患者身边，尽量不要移动他，并听从119调度员的指示。如果患者没有呼吸且您受过培训，请开始心肺复苏。",
+        "critical_self": "保持不动，坐下或躺下，并听从119调度员的指示。告诉身边的人，不要独自一人；如果可以，请打开门锁。",
         "burn": "用凉的（不是冰冷的）流动水冲洗烧伤处20分钟。摘下附近的戒指或紧身物品。用干净的不粘敷料轻轻覆盖。不要涂冰块、黄油或牙膏。",
         "cut": "用干净的布用力按压伤口10分钟。用清水或生理盐水冲洗，然后用无菌敷料覆盖。",
         "fever": "多休息，多喝水。可按说明服用退烧药。如果体温达到39.5°C或以上、持续超过3天，或出现颈部僵硬、皮疹或意识混乱，请就医。",
@@ -97,6 +100,7 @@ _T: dict[Language, dict[str, str]] = {
         "amber": "빨리 진료를 받으세요: 응급실이나 병원으로 가세요.",
         "green": "보통 응급처치로 해결할 수 있습니다. 필요하면 약국에 가세요.",
         "critical": "환자 곁에 있고, 가능하면 움직이지 말고 119 상황실의 안내를 따르세요. 숨을 쉬지 않고 교육을 받았다면 심폐소생술을 시작하세요.",
+        "critical_self": "움직이지 말고 앉거나 누운 채 119 상황실의 안내를 따르세요. 주변 사람에게 알리고 혼자 있지 마세요. 가능하면 문을 열어 두세요.",
         "burn": "화상 부위를 시원한(얼음처럼 차갑지 않은) 흐르는 물에 20분간 식히세요. 주변의 반지나 꽉 끼는 물건을 빼세요. 깨끗한 비접착 드레싱으로 느슨하게 덮으세요. 얼음, 버터, 치약은 바르지 마세요.",
         "cut": "깨끗한 천으로 상처를 10분간 세게 누르세요. 깨끗한 물이나 식염수로 씻은 뒤 멸균 드레싱으로 덮으세요.",
         "fever": "충분히 쉬고 수분을 섭취하세요. 해열제는 설명서대로 복용할 수 있습니다. 열이 39.5°C 이상이거나 3일 넘게 지속되거나, 목이 뻣뻣하거나 발진, 의식 혼란이 있으면 진료를 받으세요.",
@@ -155,7 +159,9 @@ def build_advice(
 ) -> str:
     """at_time: the time the user asked for (HH:MM); None means now."""
     t = _T[language]
-    category_line = t.get(triage.category.value) or t["critical" if triage.severity is Severity.RED else "other"]
+    critical = "critical_self" if triage.patient is Patient.SELF else "critical"  # wording only
+    category_line = t.get(triage.category.value) if triage.category is not Category.CRITICAL else t[critical]
+    category_line = category_line or t[critical if triage.severity is Severity.RED else "other"]
     lines = [t[triage.severity.value], category_line]  # high-risk categories: the first-aid card is specific
     free = [e for e in er if e.hvec > 0]
     if free:

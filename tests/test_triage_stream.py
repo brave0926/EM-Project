@@ -52,7 +52,7 @@ class FakeMcp:
         await self._wait("otc")
         return ["Sterile dressing"]
 
-    async def get_first_aid(self, category, language):
+    async def get_first_aid(self, category, language, patient=None):
         from mcp_server.first_aid import guide  # the static knowledge base, like the real tool
 
         await self._wait("first_aid")

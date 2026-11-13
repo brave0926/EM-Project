@@ -100,6 +100,26 @@ Each case runs through the graph with rules only and with a fake LLM that return
 valid ids, garbage, a made-up id and a timeout (6 modes, 180 runs). Checked: the entry, the severity
 (and that the LLM never changes it), the must / must_not items, and the global safety patterns.
 
+## Who is hurt (patient)
+
+`services/patient_service.py` reads from the text who is hurt: `self` (the writer: "I burned my hand",
+"제가…", "我…", "я…"), `other` (a third person: friend, he/she, son, mother, "someone"…) or `unknown`
+(no cue). A third person anywhere wins over first-person words ("my son cut his finger" is `other`).
+`classify()` sets `TriageResult.patient`; the SSE `triage` event carries it.
+
+Only the wording changes, never the category, severity or 119 prompt:
+- First aid: items written to a helper ("Stay with the person", "Do not leave the person alone",
+  "Let them lie down") have a `self` text in the knowledge base ("Tell someone nearby and ask them to
+  stay with you", "Lie down with your legs raised"). `get_first_aid(..., patient="self")` returns it;
+  `other`/`unknown` keep the helper text. A test makes sure every helper-worded item has a `self` text
+  and that the `self` texts pass the same safety validator.
+- Advice: the critical line has a `critical_self` version ("Stay still, sit or lie down and follow the
+  119 dispatcher. Tell someone nearby and do not stay alone…").
+
+Limits: keyword cues only. "My friend is driving me, I cut my hand" is read as `other`; Korean texts
+without a subject ("손에 화상") are `unknown` and keep the helper wording. The `self` texts are
+unreviewed drafts like the rest.
+
 ## Limits
 
 - Not clinically validated; all texts are unreviewed drafts. Keyword rules miss phrasings that are not

@@ -30,6 +30,15 @@ class Category(StrEnum):
     OTHER = "other"
 
 
+class Patient(StrEnum):
+    """Who is hurt, read from the text: the writer (self), someone else (other) or not said (unknown).
+    Only the wording of advice and first aid changes; severity never does."""
+
+    SELF = "self"
+    OTHER = "other"
+    UNKNOWN = "unknown"
+
+
 class DataStatus(StrEnum):
     LIVE = "LIVE"
     CACHED = "CACHED"

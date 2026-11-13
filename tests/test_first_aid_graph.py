@@ -74,3 +74,17 @@ async def test_metrics_count_first_aid_without_user_text(api, use_mcp):
     assert fa["escalated"] == 2 and fa["uncovered"] == 0  # "Severe burn" and "not breathing" are warning signs
     assert [r["first_aid_entry"] for r in body["recent"]] == ["burn", "critical", "minor"]
     assert "hand" not in json.dumps(body).lower() and "sore throat" not in json.dumps(body).lower()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("query", "patient", "stay"), [
+    ("I am choking near Chungju Station", "self", "Tell someone nearby"),
+    ("My friend is choking near Chungju Station", "other", "Stay with the person"),
+])
+async def test_stream_words_the_card_for_who_is_hurt(api, use_mcp, query, patient, stay):
+    use_mcp()
+    async with api() as client:
+        events = dict(events_of((await client.post("/api/triage/stream", json={"query": query})).text))
+    assert events["triage"]["patient"] == patient and events["triage"]["severity"] == "red"
+    stay_step = next(s for s in events["first_aid"]["steps"] if s["id"] == "choking.stay")
+    assert stay_step["text"].startswith(stay)

@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 from backend.app.models.domain import ERFacility, Location, LocationSource, PharmacyFacility
-from backend.app.models.enums import Category, Language, Notice, Severity
+from backend.app.models.enums import Category, Language, Notice, Patient, Severity
 from backend.app.models.first_aid import FirstAidCard
 from backend.app.models.llm import LlmStats
 
@@ -21,6 +21,7 @@ class TriageEvent(BaseModel):
     severity: Severity
     category: Category
     call_119: bool
+    patient: Patient = Patient.UNKNOWN  # who is hurt (self/other/unknown): wording only
     language: Language
     location: StreamLocation
     at_time: str | None  # local time for pharmacy hours; None for critical cases

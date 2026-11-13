@@ -79,6 +79,7 @@ def _triage_event(run: _Run, update: dict[str, Any]) -> TriageEvent:
         severity=triage.severity,
         category=triage.category,
         call_119=triage.call_119,
+        patient=triage.patient,
         language=language,
         location=StreamLocation(**update["location"].model_dump(), source=update["location_source"]),
         at_time=None if red else update.get("at_time"),

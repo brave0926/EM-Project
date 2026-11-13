@@ -19,7 +19,7 @@ from backend.app.clients.chaos import get_chaos_store
 from backend.app.core.config import TOOL_TIMEOUT_S, demo_chaos_enabled, settings
 from backend.app.models.chaos import ChaosMode
 from backend.app.models.domain import ERFacility, Location, PharmacyFacility
-from backend.app.models.enums import Category, Language
+from backend.app.models.enums import Category, Language, Patient
 from backend.app.models.first_aid import FirstAidGuide
 
 T = TypeVar("T")
@@ -134,8 +134,10 @@ class McpClient:
     async def get_otc(self, category: Category) -> list[str]:
         return await self._call("get_otc", {"category": category.value}, _ITEMS)
 
-    async def get_first_aid(self, category: Category, language: Language) -> FirstAidGuide:
-        args = {"category": category.value, "language": language.value}
+    async def get_first_aid(
+        self, category: Category, language: Language, patient: Patient = Patient.UNKNOWN
+    ) -> FirstAidGuide:
+        args = {"category": category.value, "language": language.value, "patient": patient.value}
         return await self._call("get_first_aid", args, _GUIDE, wrapped=False)  # a model comes unwrapped
 
     async def _call(self, tool: str, args: dict[str, Any], adapter: TypeAdapter[T], wrapped: bool = True) -> T:
@@ -209,8 +211,10 @@ class ChaosMcpClient:
     async def get_otc(self, category: Category) -> list[str]:
         return await self._inner.get_otc(category)
 
-    async def get_first_aid(self, category: Category, language: Language) -> FirstAidGuide:
-        return await self._inner.get_first_aid(category, language)  # static data: never targeted
+    async def get_first_aid(
+        self, category: Category, language: Language, patient: Patient = Patient.UNKNOWN
+    ) -> FirstAidGuide:
+        return await self._inner.get_first_aid(category, language, patient)  # static data: never targeted
 
     async def _apply(self, tool: str, name: str, call: Any) -> Any:
         rule = get_chaos_store().rule(tool)
