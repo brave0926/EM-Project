@@ -8,7 +8,7 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 - Date: 2026-11-16 (W7). Deadline: 2026-12-16.
 - Branch: `main`
 - Last commit: `36e63b6 feat(frontend): remove location list and button ...` (then this progress update)
-- Origin: `origin/main` = `c7acafa` + progress commit (pushed 2026-11-16); this change not pushed yet
+- Origin: `origin/main` = `da944af` (pushed 2026-11-16); in sync except this progress update
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
 - Tests: 1218 passed (`uv run pytest -q`, 2026-11-16)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
