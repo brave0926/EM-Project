@@ -8,7 +8,7 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 - Date: 2026-11-16 (W7). Deadline: 2026-12-16.
 - Branch: `main`
 - Last commit: `c11fdda feat(frontend): detect browser location on page load ...` (then this progress update)
-- Origin: `origin/main` = `c6fc341` (pushed 2026-11-13); in sync
+- Origin: `origin/main` = `c7acafa` (pushed 2026-11-16); in sync except this progress update
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
 - Tests: 1218 passed (`uv run pytest -q`, 2026-11-16)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
