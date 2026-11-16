@@ -7,8 +7,8 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 - Date: 2026-11-16 (W7). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: `bb234de fix(frontend): retry browser location on each search ...` (then this progress update)
-- Origin: `origin/main` = `0b7e4d8` (pushed 2026-11-16); in sync except this progress update
+- Last commit: `053a31e feat(frontend): final UI ...` (then this progress update)
+- Origin: `origin/main` = location retry fix + progress (pushed 2026-11-16); QR code and final UI not pushed yet
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
 - Tests: 1218 passed (`uv run pytest -q`, 2026-11-16)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
@@ -130,6 +130,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-16: public URL https://em-project-b4c3.onrender.com/ checked: /health 200, SSE stream event by event with lat/lon (source request, 1.2 s). QR code `docs/img/qr-em-project.png` (`5b77429`, not scan-tested). Final UI `053a31e`: no prototype wording, results/notices shown only when needed, trace + RT timings presenter-only (/?demo=1); screenshots EN/KO/demo in headless Chrome; 1218 tests pass.
 - 2026-11-16: deployed page sent no coordinates (source: default) even with location allowed. Fix `bb234de`: retry location on each search, wait up to 5 s, low accuracy, trace line `location: ...` with the error code. Headless Chrome: granted, denied, failed-then-retried all pass; 1218 tests pass. On the Render URL: unverified.
 - 2026-11-16: removed the location list and "Use my location" button (`36e63b6`): location is browser GPS (asked on load) or the place in the message, else default; hints/default warning updated in EN/RU/ZH/KO. Headless Chrome: granted -> request, denied -> text; 1218 tests pass.
 - 2026-11-16: frontend asks for browser location on page load (`c11fdda`); Find help waits up to 3 s for it, else text place/default; list pick overrides GPS; hints in EN/RU/ZH/KO. Headless Chrome: granted -> source request (lat/lon), denied -> text place; 1218 tests pass. GPS only useful near Chungju (data area).
@@ -139,4 +140,3 @@ Newest first. One line per session; lines beyond the last 10 go to `docs/progres
 - 2026-11-03: N6 first-aid agent done (`bfbd2bc`..`c687a5e`): curated KB (15 entries, 4 languages, verified sources), MCP tool, parallel worker, SSE/API card, LLM id selection, high-risk categories, generic entry, 30 scenarios x 6 modes; 1043 tests pass; not pushed. Next: N7 deployment.
 - 2026-11-03: fever + headache AMBER in all languages `ba2d092`; `minor` category + green sore-throat demo chip; 446 tests pass; pushed main. Next: N6 (or the N5 real-key run).
 - 2026-11-03: N5c done: ZH deep-cut chip GREEN -> AMBER and danger phrases covered in 4 languages `4d2e47a`; RU/ZH/KO place aliases `736d175`; 16/16 chips consistent with a text place; 423 tests pass. Next: N6 (or the N5 real-key run).
-- 2026-11-03: N5 reviewed against its done-criteria: added the diagnosis filter, budget/RED/never-called/log-privacy tests, llm_smoke, env wiring and docs; commits `d01f8a6`, `3544157`, `4bb77d6`; 299 tests pass. Real API run unverified (no key). Next: N6 first-aid agent.
