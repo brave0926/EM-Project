@@ -5,12 +5,12 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 ## Snapshot
 
-- Date: 2026-11-13 (W7). Deadline: 2026-12-16.
+- Date: 2026-11-16 (W7). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: `c6fc341 fix(deploy): default container CMD ...` (then this progress update)
+- Last commit: `c11fdda feat(frontend): detect browser location on page load ...` (then this progress update)
 - Origin: `origin/main` = `c6fc341` (pushed 2026-11-13); in sync
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
-- Tests: 1218 passed (`uv run pytest -q`, 2026-11-13)
+- Tests: 1218 passed (`uv run pytest -q`, 2026-11-16)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 - LLM: off by default; `EM_LLM=anthropic` + `ANTHROPIC_API_KEY` (`docs/llm.md`). No key in `.env` yet: real API run unverified
@@ -76,7 +76,6 @@ Not yet measured: concurrent load and a deployed server over a real network (N7)
 
 - Open from N5: one real run once `ANTHROPIC_API_KEY` is in `.env`: `python scripts/llm_smoke.py --all-langs`, then `EM_LLM=anthropic scripts/run_dev.sh` + `python scripts/llm_smoke.py --chips http://127.0.0.1:8000`; record latency/outcome per job here.
 - N7 on Render: image now has a default CMD `scripts/start_container.sh` (MCP on 127.0.0.1:8001, API on 0.0.0.0:$PORT); fixes "Application exited early" (no CMD -> python3 exited). Verified locally: `docker run -e PORT=10000` -> /health 200, /facilities/er 200 via MCP. Public Render URL unverified.
-- `docs/progress_archive.md` does not exist yet (created when the log passes 10 lines).
 
 ## Next steps
 
@@ -131,6 +130,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-16: frontend asks for browser location on page load (`c11fdda`); Find help waits up to 3 s for it, else text place/default; list pick overrides GPS; hints in EN/RU/ZH/KO. Headless Chrome: granted -> source request (lat/lon), denied -> text place; 1218 tests pass. GPS only useful near Chungju (data area).
 - 2026-11-13: who is hurt (self/other/unknown) from the text (`patient_service`, EN/RU/ZH/KO rules); first-aid KB `self` texts for 26 helper-worded items, `critical_self` advice line, `patient` in SSE triage event; wording only, severity unchanged. 1218 tests pass (`tests/test_patient.py`, KB + graph tests). Self texts are unreviewed drafts.
 - 2026-11-13: frontend: time no longer expected in the message (hint, placeholder, chips without times in EN/RU/ZH/KO); live Korea-time clock; pharmacy list says "Open now (HH:MM Korea time)" or "Open at HH:MM (time from your message)". Checked in headless Chrome (EN/KO, no time and explicit 2 AM); 1043 tests pass.
 - 2026-11-13: Render deploy failed with "Application exited early": Dockerfile had no CMD. Added single-container start script + CMD; local docker run with $PORT serves /health and /facilities/er. Next: redeploy on Render and check the public URL (N7).
@@ -140,6 +140,3 @@ Newest first. One line per session; lines beyond the last 10 go to `docs/progres
 - 2026-11-03: N5 reviewed against its done-criteria: added the diagnosis filter, budget/RED/never-called/log-privacy tests, llm_smoke, env wiring and docs; commits `d01f8a6`, `3544157`, `4bb77d6`; 299 tests pass. Real API run unverified (no key). Next: N6 first-aid agent.
 - 2026-11-03: plan change: added N6 first-aid support agent and N9 quality evaluation; renumbered deploy N6->N7, benchmark N7->N8, report N8->N10; N4 /sessions moved last (optional). Older log lines use the old IDs. Next: N5 LLM client.
 - 2026-11-03: pushed main (`7adc347..cc08127`) and tags v0.4-arch-study `8b222e8`, v0.5-framework-agent `567cbf0`, v0.7-multi-agent `394cf52`, v0.9-realtime-sse `af03fb4`, v1.0-reliable-agent `d3fe5c5`. Next: N4.
-- 2026-11-03: N3 done: /demo/chaos `826f88e`, chaos_demo + RT-103 measured mock 2/2/2 ms, live 1/3/3 ms `2f5caa2`, demo controls `fb8fb71`; 259 tests pass. Next: N4 checkpointer + /sessions (ask about `langgraph-checkpoint-sqlite` first).
-- 2026-11-03: N2 done: GET /metrics `8d35a48`, bench_contracts + measurements mock n=30 / live n=10 `4ed0dd6`; all contracts measured OK except RT-103 (no samples yet); 249 tests pass. Next: N3 /demo/chaos.
-- 2026-11-03: status review; committed docker-compose v1 fix `67e986b`; added PROGRESS.md, session protocol in CLAUDE.md, `/progress` command `ac424e0`; 236 tests pass. Next: N2 /metrics.
