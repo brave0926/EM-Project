@@ -7,8 +7,8 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 - Date: 2026-11-16 (W7). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: `c11fdda feat(frontend): detect browser location on page load ...` (then this progress update)
-- Origin: `origin/main` = `c7acafa` (pushed 2026-11-16); in sync except this progress update
+- Last commit: `36e63b6 feat(frontend): remove location list and button ...` (then this progress update)
+- Origin: `origin/main` = `c7acafa` + progress commit (pushed 2026-11-16); this change not pushed yet
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
 - Tests: 1218 passed (`uv run pytest -q`, 2026-11-16)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
@@ -130,6 +130,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-16: removed the location list and "Use my location" button (`36e63b6`): location is browser GPS (asked on load) or the place in the message, else default; hints/default warning updated in EN/RU/ZH/KO. Headless Chrome: granted -> request, denied -> text; 1218 tests pass.
 - 2026-11-16: frontend asks for browser location on page load (`c11fdda`); Find help waits up to 3 s for it, else text place/default; list pick overrides GPS; hints in EN/RU/ZH/KO. Headless Chrome: granted -> source request (lat/lon), denied -> text place; 1218 tests pass. GPS only useful near Chungju (data area).
 - 2026-11-13: who is hurt (self/other/unknown) from the text (`patient_service`, EN/RU/ZH/KO rules); first-aid KB `self` texts for 26 helper-worded items, `critical_self` advice line, `patient` in SSE triage event; wording only, severity unchanged. 1218 tests pass (`tests/test_patient.py`, KB + graph tests). Self texts are unreviewed drafts.
 - 2026-11-13: frontend: time no longer expected in the message (hint, placeholder, chips without times in EN/RU/ZH/KO); live Korea-time clock; pharmacy list says "Open now (HH:MM Korea time)" or "Open at HH:MM (time from your message)". Checked in headless Chrome (EN/KO, no time and explicit 2 AM); 1043 tests pass.
@@ -139,4 +140,3 @@ Newest first. One line per session; lines beyond the last 10 go to `docs/progres
 - 2026-11-03: N5c done: ZH deep-cut chip GREEN -> AMBER and danger phrases covered in 4 languages `4d2e47a`; RU/ZH/KO place aliases `736d175`; 16/16 chips consistent with a text place; 423 tests pass. Next: N6 (or the N5 real-key run).
 - 2026-11-03: N5 reviewed against its done-criteria: added the diagnosis filter, budget/RED/never-called/log-privacy tests, llm_smoke, env wiring and docs; commits `d01f8a6`, `3544157`, `4bb77d6`; 299 tests pass. Real API run unverified (no key). Next: N6 first-aid agent.
 - 2026-11-03: plan change: added N6 first-aid support agent and N9 quality evaluation; renumbered deploy N6->N7, benchmark N7->N8, report N8->N10; N4 /sessions moved last (optional). Older log lines use the old IDs. Next: N5 LLM client.
-- 2026-11-03: pushed main (`7adc347..cc08127`) and tags v0.4-arch-study `8b222e8`, v0.5-framework-agent `567cbf0`, v0.7-multi-agent `394cf52`, v0.9-realtime-sse `af03fb4`, v1.0-reliable-agent `d3fe5c5`. Next: N4.
