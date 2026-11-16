@@ -133,12 +133,17 @@ $("lang").innerHTML='<select id="ls" aria-label="Language"><option value="en">En
 $("ls").onchange=function(){setLang(this.value)};
 // Browser location: asked on page load, so the user only describes the problem.
 // geoP resolves (never rejects) when the browser answers; without it the backend uses the text or the default.
-var geoP=null;
-function locate(){var t=L[cur];if(!navigator.geolocation){$("locst").textContent=t.locErr+"geolocation";return Promise.resolve(null)}
-$("locst").textContent=t.locating;geoP=new Promise(function(res){navigator.geolocation.getCurrentPosition(function(pos){geo={lat:pos.coords.latitude,lon:pos.coords.longitude};$("locst").textContent=L[cur].locOk;res(geo)},function(e){geo=null;$("locst").textContent=L[cur].locErr+e.message;res(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:60000})});return geoP}
-// Run waits briefly for a pending location (GEO_WAIT_MS), then goes on with text/default.
-var GEO_WAIT_MS=3000;
-function geoReady(){if(geo||!geoP)return Promise.resolve();return Promise.race([geoP,new Promise(function(r){setTimeout(r,GEO_WAIT_MS)})])}
+// Low accuracy (Wi-Fi/IP) answers fast on laptops; GPS-grade accuracy is not needed to pick the nearest ER.
+var geoP=null,geoPending=false,geoErr="";
+function locate(){var t=L[cur];if(!navigator.geolocation){geoErr="no geolocation API";$("locst").textContent=t.locErr+"geolocation";return Promise.resolve(null)}
+if(!window.isSecureContext){geoErr="page is not HTTPS";$("locst").textContent=t.locErr+geoErr;return Promise.resolve(null)}
+if(geoPending)return geoP;geoPending=true;$("locst").textContent=t.locating;
+geoP=new Promise(function(res){navigator.geolocation.getCurrentPosition(function(pos){geoPending=false;geoErr="";geo={lat:pos.coords.latitude,lon:pos.coords.longitude};$("locst").textContent=L[cur].locOk;res(geo)},
+function(e){geoPending=false;geo=null;geoErr="code "+e.code+": "+e.message;$("locst").textContent=L[cur].locErr+e.message;res(null)},{enableHighAccuracy:false,timeout:15000,maximumAge:300000})});return geoP}
+// Run: if there is no position yet, ask again (a failed or late first attempt is retried), wait up to GEO_WAIT_MS,
+// then go on with the text/default so the answer is never blocked by the browser.
+var GEO_WAIT_MS=5000;
+function geoReady(){if(geo)return Promise.resolve();var p=locate();return Promise.race([p,new Promise(function(r){setTimeout(r,GEO_WAIT_MS)})])}
 function body(){var b={query:$("q").value.trim()||L[cur].ph,language:cur};
 if(geo){b.lat=geo.lat;b.lon=geo.lon}return b}
 // POST + ReadableStream: EventSource only does GET. One SSE message per blank line.
@@ -151,7 +156,7 @@ async function run(){if(busy)return;busy=true;$("run").disabled=true;clearOut();
 var t=L[cur],t0=performance.now(),log=[],ev={},b=body(),sources={};
 function lg(s){log.push("+"+String(Math.round(performance.now()-t0)).padStart(5)+" ms  "+s);$("tl").textContent=log.join("\n")}
 function tag(list){list.forEach(function(f){sources[f.source]=1});var s=$("srcTag");s.style.display="inline-block";s.className="mock"+(sources.MOCK?"":" lv");s.textContent=sources.MOCK?t.tagMock:t.tagLive}
-$("adv").textContent=t.st;lg("POST "+STREAM_URL+(b.lat!=null?" (lat/lon)":""));
+$("adv").textContent=t.st;lg("location: "+(geo?"browser "+geo.lat.toFixed(3)+", "+geo.lon.toFixed(3):"none ("+(geoErr||(geoPending?"still waiting":"unknown"))+")"));lg("POST "+STREAM_URL+(b.lat!=null?" (lat/lon)":""));
 var on={
 triage:function(d){var s=$("sev"),k={red:"R",amber:"A",green:"G"}[d.severity];s.className=d.severity;s.style.display="block";
 s.innerHTML=d.prompt_119?'<span class="p119">'+esc(d.prompt_119)+'</span><a class="c119" href="tel:119">'+t.c119+'</a>':esc(t[k]);
