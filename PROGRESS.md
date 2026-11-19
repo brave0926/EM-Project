@@ -5,13 +5,13 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 ## Snapshot
 
-- Date: 2026-11-16 (W7). Deadline: 2026-12-16.
+- Date: 2026-11-19 (W7). Deadline: 2026-12-16.
 - Branch: `main`
-- Last commit: `053a31e feat(frontend): final UI ...` (then this progress update)
-- Origin: `origin/main` = `0e3f48a` (pushed 2026-11-16); in sync except this progress update
+- Last commit: `cb18f3d chore(git): ignore local tool folders ...` (then this progress update)
+- Origin: `origin/main` = `fa75dc0`; local is ahead by `cb18f3d` + this progress update (not pushed)
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
-- Tests: 1218 passed (`uv run pytest -q`, 2026-11-16)
-- Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`)
+- Tests: 1218 passed (`uv run pytest -q`, 2026-11-19)
+- Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`, `graphify-out/`, `pixel-agent-desk/`, `.mcp.json`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 - LLM: off by default; `EM_LLM=anthropic` + `ANTHROPIC_API_KEY` (`docs/llm.md`). No key in `.env` yet: real API run unverified
 
@@ -130,6 +130,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-19: health check: fixed an accidental uncommitted docstring typo in `fallback_service.py` that broke imports (file back to HEAD); 1218 tests pass; public /health 200 (15 s cold start); local tool folders gitignored `cb18f3d`. Next: N8.
 - 2026-11-16: public URL https://em-project-b4c3.onrender.com/ checked: /health 200, SSE stream event by event with lat/lon (source request, 1.2 s). QR code `docs/img/qr-em-project.png` (`5b77429`, not scan-tested). Final UI `053a31e`: no prototype wording, results/notices shown only when needed, trace + RT timings presenter-only (/?demo=1); screenshots EN/KO/demo in headless Chrome; 1218 tests pass.
 - 2026-11-16: deployed page sent no coordinates (source: default) even with location allowed. Fix `bb234de`: retry location on each search, wait up to 5 s, low accuracy, trace line `location: ...` with the error code. Headless Chrome: granted, denied, failed-then-retried all pass; 1218 tests pass. On the Render URL: unverified.
 - 2026-11-16: removed the location list and "Use my location" button (`36e63b6`): location is browser GPS (asked on load) or the place in the message, else default; hints/default warning updated in EN/RU/ZH/KO. Headless Chrome: granted -> request, denied -> text; 1218 tests pass.
@@ -139,4 +140,3 @@ Newest first. One line per session; lines beyond the last 10 go to `docs/progres
 - 2026-11-13: Render deploy failed with "Application exited early": Dockerfile had no CMD. Added single-container start script + CMD; local docker run with $PORT serves /health and /facilities/er. Next: redeploy on Render and check the public URL (N7).
 - 2026-11-03: N6 first-aid agent done (`bfbd2bc`..`c687a5e`): curated KB (15 entries, 4 languages, verified sources), MCP tool, parallel worker, SSE/API card, LLM id selection, high-risk categories, generic entry, 30 scenarios x 6 modes; 1043 tests pass; not pushed. Next: N7 deployment.
 - 2026-11-03: fever + headache AMBER in all languages `ba2d092`; `minor` category + green sore-throat demo chip; 446 tests pass; pushed main. Next: N6 (or the N5 real-key run).
-- 2026-11-03: N5c done: ZH deep-cut chip GREEN -> AMBER and danger phrases covered in 4 languages `4d2e47a`; RU/ZH/KO place aliases `736d175`; 16/16 chips consistent with a text place; 423 tests pass. Next: N6 (or the N5 real-key run).

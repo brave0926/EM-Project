@@ -2,6 +2,7 @@
 
 Session log lines moved out of PROGRESS.md (oldest last).
 
+- 2026-11-03: N5c done: ZH deep-cut chip GREEN -> AMBER and danger phrases covered in 4 languages `4d2e47a`; RU/ZH/KO place aliases `736d175`; 16/16 chips consistent with a text place; 423 tests pass. Next: N6 (or the N5 real-key run).
 - 2026-11-03: N5 reviewed against its done-criteria: added the diagnosis filter, budget/RED/never-called/log-privacy tests, llm_smoke, env wiring and docs; commits `d01f8a6`, `3544157`, `4bb77d6`; 299 tests pass. Real API run unverified (no key). Next: N6 first-aid agent.
 - 2026-11-03: plan change: added N6 first-aid support agent and N9 quality evaluation; renumbered deploy N6->N7, benchmark N7->N8, report N8->N10; N4 /sessions moved last (optional). Older log lines use the old IDs. Next: N5 LLM client.
 - 2026-11-03: pushed main (`7adc347..cc08127`) and tags v0.4-arch-study `8b222e8`, v0.5-framework-agent `567cbf0`, v0.7-multi-agent `394cf52`, v0.9-realtime-sse `af03fb4`, v1.0-reliable-agent `d3fe5c5`. Next: N4.
