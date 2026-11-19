@@ -4,3 +4,8 @@ __pycache__
 *.db
 .idea/
 .pytest_cache/
+
+# local tools, not part of the project
+graphify-out/
+pixel-agent-desk/
+.mcp.json
