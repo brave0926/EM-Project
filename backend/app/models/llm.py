@@ -22,6 +22,15 @@ class LlmContext(BaseModel):
     place: KnownPlace | None
 
 
+class LlmChat(BaseModel):
+    """Strict JSON from the chat job: is the message (maybe) medical, and the reply if it is not."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    medical: bool
+    reply: str = Field(max_length=2000)
+
+
 class LlmJob(BaseModel):
     outcome: LlmOutcome
     ms: int | None = Field(default=None, ge=0)  # None when no call was made
@@ -33,4 +42,5 @@ class LlmStats(BaseModel):
     extract_ms: int | None = Field(default=None, ge=0)
     rewrite_ms: int | None = Field(default=None, ge=0)
     select_ms: int | None = Field(default=None, ge=0)  # first-aid item selection
+    chat_ms: int | None = Field(default=None, ge=0)  # medical or not, reply to non-medical messages
     outcome: LlmOutcome = LlmOutcome.OFF  # worst of the jobs that ran: error > timeout > invalid > ok

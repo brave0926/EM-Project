@@ -3,7 +3,7 @@
 The controller passes in the graph's node updates (graph/triage_graph.stream_updates); this
 service turns them into events, in the order the nodes finish:
 
-    chat (small talk only: an assistant reply, then done), or
+    chat (not about an injury or sickness: an assistant reply, then done), or
     triage (rules only, first) -> [context] -> notice* -> er / pharmacy / first_aid (any order) -> notice* -> advice -> done
 
 context comes only when the LLM filled a missing place or time (EM_LLM=anthropic). done carries
@@ -95,7 +95,7 @@ def _events(run: _Run, node: str, update: dict[str, Any]) -> list[StreamEvent]:
     notices = update.get("notices", [])
     if node == "chat_check":
         if update.get("chat") is None:
-            return []
+            return list(run.new_notices(notices))  # LLM_FALLBACK when the chat job failed
         return [ChatEvent(kind=update["chat"], language=update["language"], reply=update["advice"],
                           t_ms=run.stamp("chat"))]
     if node == "triage":

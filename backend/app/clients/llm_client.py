@@ -1,6 +1,7 @@
 """LLM port and clients. No FastAPI, no mcp_server imports; never logs the key or user text.
 
-Three jobs only: rewrite_advice (template advice -> clearer text, same language),
+Four jobs only: chat (user query -> JSON {"medical", "reply"}: is it about health, and a short
+reply if it is not), rewrite_advice (template advice -> clearer text, same language),
 extract_context (user query -> JSON {"time", "place"}) and select_items (user query + first-aid
 item ids from the knowledge base -> JSON {"ids": [...]}, ids only, never text). Clients return raw text; validation,
 budgets and fallbacks live in services/llm_service.py.
@@ -60,6 +61,23 @@ Choose only ids that appear in <items>. Never write advice, explanations or new 
 SELECT_MAX_IDS = 8
 
 
+CHAT_SYSTEM = """You are EM-Agent, an emergency assistant for Chungju, Korea. You help people find the
+nearest ER and open pharmacy and give first-aid steps.
+Decide whether the user's message is about an injury, a sickness, a symptom, someone in danger or any
+health problem, or could be. If in doubt, it is medical.
+- Medical: return {{"medical": true, "reply": ""}}.
+- Not medical: return {{"medical": false, "reply": "..."}} with a short, friendly reply in {language}
+  (at most 300 characters) that answers the message naturally, then asks if they need help.
+Never give medical advice, a diagnosis, a drug or a dose. No markdown."""
+
+CHAT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {"medical": {"type": "boolean"}, "reply": {"type": "string"}},
+    "required": ["medical", "reply"],
+    "additionalProperties": False,
+}
+
+
 def select_schema(ids: list[str]) -> dict[str, Any]:
     return {
         "type": "object",
@@ -88,6 +106,10 @@ class LlmClient(ABC):
         """Return JSON text {"ids": [...]} (or a plain list) with ids picked from items (id, text)."""
         raise NotImplementedError
 
+    async def chat(self, query: str, language: Language) -> str:
+        """Return JSON text {"medical": bool, "reply": str}; reply is empty when medical."""
+        raise NotImplementedError
+
 
 class NoLlm(LlmClient):
     enabled = False
@@ -100,6 +122,9 @@ class NoLlm(LlmClient):
 
     async def select_items(self, query: str, language: Language, items: list[tuple[str, str]]) -> str:
         return json.dumps({"ids": []})
+
+    async def chat(self, query: str, language: Language) -> str:
+        return json.dumps({"medical": True, "reply": ""})
 
 
 class AnthropicLlm(LlmClient):
@@ -145,6 +170,17 @@ class AnthropicLlm(LlmClient):
         )
         return _text(response)
 
+    async def chat(self, query: str, language: Language) -> str:
+        response = await self._client.messages.create(
+            model=self.model,
+            max_tokens=300,
+            system=CHAT_SYSTEM.format(language=LANGUAGE_NAMES[language]),
+            thinking={"type": "disabled"},
+            output_config={"effort": "low", "format": {"type": "json_schema", "schema": CHAT_SCHEMA}},
+            messages=[{"role": "user", "content": f"<message lang=\"{language.value}\">\n{query}\n</message>"}],
+        )
+        return _text(response)
+
     async def aclose(self) -> None:
         await self._client.close()
 
@@ -186,6 +222,9 @@ class ChaosLlmClient(LlmClient):
 
     async def select_items(self, query: str, language: Language, items: list[tuple[str, str]]) -> str:
         return await self._apply(lambda: self._inner.select_items(query, language, items))
+
+    async def chat(self, query: str, language: Language) -> str:
+        return await self._apply(lambda: self._inner.chat(query, language))
 
 
 def build_llm_client() -> LlmClient:

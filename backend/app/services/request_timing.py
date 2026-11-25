@@ -41,7 +41,8 @@ class RequestTiming:
         ran = [o for o in self.llm_outcomes.values() if o is not LlmOutcome.OFF]
         outcome = next((o for o in _WORST_FIRST if o in ran), LlmOutcome.OFF)
         return LlmStats(extract_ms=self.llm_ms.get("extract"), rewrite_ms=self.llm_ms.get("rewrite"),
-                        select_ms=self.llm_ms.get("select"), outcome=outcome)
+                        select_ms=self.llm_ms.get("select"), chat_ms=self.llm_ms.get("chat"),
+                        outcome=outcome)
 
 
 def chaos_active() -> bool:

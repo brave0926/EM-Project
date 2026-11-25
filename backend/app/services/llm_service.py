@@ -1,4 +1,4 @@
-"""Use case: the two LLM jobs with budget, validation and fallback. No FastAPI, no I/O of its own.
+"""Use case: the LLM jobs with budget, validation and fallback. No FastAPI, no I/O of its own.
 
 Every job runs inside LLM_TIMEOUT_S (less if RT-105 is near) and is checked before use; on any
 error, timeout, empty or invalid output the caller keeps its rule/template result. The LLM never
@@ -18,7 +18,7 @@ from pydantic import ValidationError
 from backend.app.clients.llm_client import SELECT_MAX_IDS, get_llm_client
 from backend.app.core.config import END_TO_END_S, LLM_RESERVE_S, LLM_REWRITE_MAX_CHARS, LLM_TIMEOUT_S
 from backend.app.models.enums import Language, LlmOutcome
-from backend.app.models.llm import LlmContext, LlmJob
+from backend.app.models.llm import LlmChat, LlmContext, LlmJob
 from backend.app.services import content_safety, request_timing
 
 log = logging.getLogger(__name__)
@@ -139,3 +139,27 @@ async def select_items(query: str, language: Language, items: Sequence[tuple[str
         lambda out: parse_selection(out, allowed, steps),
     )
     return (ids if isinstance(ids, list) else None), job
+
+
+CHAT_MAX_CHARS = 400
+
+
+def parse_chat(raw: str) -> LlmChat:
+    """Strict JSON {"medical", "reply"}. A non-medical reply must be non-empty, short, and carry no
+    dose and no diagnosis; a medical answer needs no reply."""
+    try:
+        chat = LlmChat.model_validate(json.loads(raw))
+    except (ValueError, ValidationError):
+        raise _Invalid from None
+    if chat.medical:
+        return chat
+    reply = chat.reply.strip()
+    if not reply or len(reply) > CHAT_MAX_CHARS or _DOSE.search(reply) or _DIAGNOSIS.search(reply):
+        raise _Invalid
+    return chat.model_copy(update={"reply": reply})
+
+
+async def chat_reply(query: str, language: Language) -> tuple[LlmChat | None, LlmJob]:
+    """(medical or not + reply, or None on any failure, job). The caller triages on None or medical."""
+    chat, job = await _run("chat", lambda: get_llm_client().chat(query, language), parse_chat)
+    return (chat if isinstance(chat, LlmChat) else None), job

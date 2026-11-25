@@ -1,16 +1,21 @@
 # LLM: advice rewrite and context extraction (N5)
 
 The LLM is optional. With it off (the default) the app runs on keyword rules and templates
-alone, exactly as before N5. With it on, it does two jobs, and it can't change anything that
+alone, exactly as before N5. With it on, it does these jobs, and it can't change anything that
 matters for safety:
 
 | Job | Input | Output | Used only if |
 |---|---|---|---|
 | `extract` | the user's message | JSON `{"time": "HH:MM" \| null, "place": <known place id> \| null}` | the rules found no place (no request coordinates, no place name in the text) or no time (not for RED) |
 | `rewrite` | the template advice | a clearer, calmer text in the same language | it passes validation (below) |
+| `chat` | the user's message | JSON `{"medical": bool, "reply": str}` | the message is not small talk and has no emergency, health, distress or body word (`chat_service.needs_triage`) |
 
 Severity, category and the 119 prompt always come from `services/classifier_service.py`. The
-LLM never sees or sets them. The first stream event (`triage`, RT-101) never waits for the LLM.
+LLM never sees or sets them. The `triage` event never waits for the LLM, except in one case: a
+message with no health word at all (e.g. "what's the weather") waits for the `chat` job (at most
+`LLM_TIMEOUT_S` = 1 s, so RT-101 still holds). `medical: true`, a timeout, an error or an invalid
+answer all lead to a normal triage (the last three add `LLM_FALLBACK`). With the LLM off such a
+message gets a fixed "I couldn't find an injury or sickness, is someone hurt?" reply with the 119 line.
 
 ## Enable
 
@@ -48,6 +53,10 @@ Extraction output must be strict JSON matching `models/llm.LlmContext`: a time a
 place from `KNOWN_PLACES` (`chungju_station`, `yeonsu_dong`, `city_hall`), with no extra keys.
 The place id is mapped to coordinates by `location_service.known_place`, so the LLM never supplies
 coordinates. Anything else is ignored. Rules always win: the LLM fills only the fields the rules left empty.
+
+A chat answer is used only when it is strict JSON (`models/llm.LlmChat`) and, for `medical: false`,
+the reply is non-empty, at most 400 characters, with no dose and no diagnosis. The 119 line is
+always added after it (`chat_service.general_reply`).
 
 On a timeout, error or invalid output the request continues on rules and template, and the notice
 `LLM_FALLBACK` is added. The notice is technical, so it is not written into the advice text.

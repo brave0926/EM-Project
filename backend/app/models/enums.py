@@ -38,6 +38,8 @@ class ChatKind(StrEnum):
     THANKS = "thanks"
     ABOUT = "about"  # who are you / what can you do
     BYE = "bye"
+    GENERAL = "general"  # anything else that is not medical, answered by the LLM (EM_LLM=anthropic)
+    UNCLEAR = "unclear"  # no injury or sickness found and no LLM: ask what happened
 
 
 class Patient(StrEnum):

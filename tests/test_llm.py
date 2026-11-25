@@ -233,7 +233,8 @@ async def test_llm_off_is_never_called_and_unchanged(api, monkeypatch):
     names = [n for n, _ in events]
     assert names[:2] == ["triage", "notice"] and events[1][1]["notice"] == Notice.LOCATION_DEFAULT  # as before
     assert "context" not in names
-    assert events[-1][1]["llm"] == {"extract_ms": None, "rewrite_ms": None, "select_ms": None, "outcome": "off"}
+    assert events[-1][1]["llm"] == {"extract_ms": None, "rewrite_ms": None, "select_ms": None, "chat_ms": None,
+                                    "outcome": "off"}
     body = await triage(api, NO_PLACE)
     assert Notice.LLM_FALLBACK not in body["notices"]
 

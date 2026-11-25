@@ -1,6 +1,6 @@
 """Supervisor graph for triage (LangGraph).
 
-    START -> chat_check -+- small talk ("hi", "thanks", "who are you"): reply -> END
+    START -> chat_check -+- not about an injury or sickness ("hi", "what's the weather"): reply -> END
                          +- else: triage -> extract -+- red:   er_worker || first_aid_worker ---------------------+-> advise -> END
                                                      +- other: er_worker || pharmacy_worker || first_aid_worker ---+
 
@@ -77,12 +77,27 @@ class TriageState(TypedDict, total=False):
 
 
 async def chat_check(state: TriageState) -> TriageState:
-    """Whole message is small talk -> an assistant reply and no triage. Rules only, no network."""
-    kind = chat_service.detect_chat(state["query"])
-    if kind is None:
+    """Answer like an assistant when the message is not about an injury or sickness; else triage.
+
+    small talk (rules) -> fixed reply. Any emergency, health, distress or body word -> triage.
+    Otherwise the LLM decides (medical -> triage, else its reply); it failing -> triage + LLM_FALLBACK.
+    No LLM -> UNCLEAR reply asking what happened. Every reply ends with the 119 line."""
+    query = state["query"]
+    kind = chat_service.detect_chat(query)
+    if kind is None and chat_service.needs_triage(query):
         return {"chat": None}
-    language = state.get("language") or language_service.detect_language(state["query"])
-    return {"chat": kind, "language": language, "advice": chat_service.reply(kind, language)}
+    language = state.get("language") or language_service.detect_language(query)
+    if kind is not None:
+        return {"chat": kind, "language": language, "advice": chat_service.reply(kind, language)}
+    if not llm_service.enabled():
+        return {"chat": ChatKind.UNCLEAR, "language": language,
+                "advice": chat_service.reply(ChatKind.UNCLEAR, language)}
+    chat, job = await llm_service.chat_reply(query, language)
+    if chat is None:
+        return {"chat": None, "notices": [Notice.LLM_FALLBACK] if job.outcome in llm_service.FAILED else []}
+    if chat.medical:
+        return {"chat": None}
+    return {"chat": ChatKind.GENERAL, "language": language, "advice": chat_service.general_reply(chat.reply, language)}
 
 
 def after_chat_check(state: TriageState) -> str:
