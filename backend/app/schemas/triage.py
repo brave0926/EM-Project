@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.app.schemas.first_aid import FirstAidCardSchema
 from backend.app.models.domain import HHMM_PATTERN, ERFacility, Location, LocationSource, PharmacyFacility
-from backend.app.models.enums import Category, Language, Notice, Severity
+from backend.app.models.enums import Category, ChatKind, Language, Notice, Severity
 
 DEMO_QUERY = "Severe burn on my hand, near Chungju Station, 2 AM"
 
@@ -80,11 +80,18 @@ class TriageResponseSchema(BaseModel):
     )
 
     language: Language = Field(description="Language of the advice (detected or requested).")
-    severity: Severity = Field(description="Triage level: red (critical), amber, green.")
-    category: Category = Field(description="Detected emergency category.")
+    chat: ChatKind | None = Field(
+        default=None,
+        description="Set when the whole message is small talk (hi, thanks, who are you): `advice` then holds "
+        "the assistant reply and severity, category and location are null.",
+    )
+    severity: Severity | None = Field(description="Triage level: red (critical), amber, green. Null for small talk.")
+    category: Category | None = Field(description="Detected emergency category. Null for small talk.")
     call_119: bool = Field(description="True when the user should call 119 immediately.")
-    location: Location = Field(description="Point distances are measured from.")
-    location_source: LocationSource = Field(description="request (lat/lon), text (place named) or default.")
+    location: Location | None = Field(description="Point distances are measured from. Null for small talk.")
+    location_source: LocationSource | None = Field(
+        description="request (lat/lon), text (place named) or default. Null for small talk."
+    )
     at_time: str | None = Field(description="Local time used for pharmacy hours; null for critical cases.")
     er: list[ERFacility] = Field(default_factory=list, description="Up to 3 ERs, free beds first, then nearest.")
     pharmacies: list[PharmacyFacility] = Field(

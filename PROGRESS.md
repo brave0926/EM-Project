@@ -5,12 +5,12 @@ If this file and the repo disagree, the repo wins. No keys, tokens, personal dat
 
 ## Snapshot
 
-- Date: 2026-11-19 (W7). Deadline: 2026-12-16.
+- Date: 2026-11-25 (W8). Deadline: 2026-12-16.
 - Branch: `main`
 - Last commit: `cb18f3d chore(git): ignore local tool folders ...` (then this progress update)
 - Origin: `origin/main` = `fa75dc0`; local is ahead by `cb18f3d` + this progress update (not pushed)
 - Tags (all pushed): v0.2, v0.3, v0.4-arch-study, v0.5-framework-agent, v0.6-mcp-integrated, midterm-demo-v0.6, v0.7-multi-agent, v0.9-realtime-sse, v1.0-reliable-agent
-- Tests: 1218 passed (`uv run pytest -q`, 2026-11-19)
+- Tests: 1284 passed (`uv run pytest -q`, 2026-11-25)
 - Working tree: clean after the progress commit (local-only files are gitignored: `.env`, `em_fallback.db`, `.idea/`, `graphify-out/`, `pixel-agent-desk/`, `.mcp.json`)
 - Provider default: `EM_PROVIDER=mock` (`mcp_server/providers.py`); `live` reads data.go.kr (Chungju)
 - LLM: off by default; `EM_LLM=anthropic` + `ANTHROPIC_API_KEY` (`docs/llm.md`). No key in `.env` yet: real API run unverified
@@ -72,6 +72,9 @@ Not yet measured: concurrent load and a deployed server over a real network (N7)
 - N5c follow-up: fever with a warning sign (headache, stiff neck, rash, confusion) is AMBER in all languages `ba2d092`; new `minor` category (sore throat, runny nose; GREEN unless a severity/danger word lifts it) with advice and OTC list, fifth demo chip "mild sore throat near Chungju Station" in EN/RU/ZH/KO: 20/20 chips one severity per chip (AMBER, AMBER, AMBER, RED, GREEN) with a text place (`tests/test_classifier_safety.py`)
 - N6 first-aid agent: KB + validator `bfbd2bc`; MCP tool `get_first_aid` + client + `first_aid_service` + LLM `select_items` (ids only, validated) `c73d126`; `first_aid_worker` in parallel (also RED, minimal card), SSE `first_aid`, `/api/triage` `first_aid`, /metrics `first_aid` + `llm.select_ms` `dda564d`; frontend card `8f9c773` (headless Chrome: EN burn AMBER with escalation, KO RED minimal); 9 high-risk categories + generic entry `642e8be`; 30 scenarios x 6 modes (rules, invalid/valid/garbage/made-up ids, timeout) all pass `cc8342b`; `docs/first_aid.md` `c687a5e`. Real LLM selection unverified (no key)
 
+### W8 (assistant behaviour)
+- Small talk: `chat_check` node before triage; whole message = greeting / how are you / thanks / who are you / bye (EN/RU/ZH/KO, rules) -> assistant reply, no triage; SSE `chat` event then `done`; `/api/triage` `chat` field (severity/category/location null); frontend chat panel. "help" alone and any leftover word still triage. 66 tests (`tests/test_chat.py`); 1284 pass. Frontend not checked in a browser (unverified)
+
 ## In progress / uncommitted
 
 - Open from N5: one real run once `ANTHROPIC_API_KEY` is in `.env`: `python scripts/llm_smoke.py --all-langs`, then `EM_LLM=anthropic scripts/run_dev.sh` + `python scripts/llm_smoke.py --chips http://127.0.0.1:8000`; record latency/outcome per job here.
@@ -130,6 +133,7 @@ Deadline 2026-12-16. Order: N7, N8, N9, N10; N4 last and optional. (N5 real-key 
 
 Newest first. One line per session; lines beyond the last 10 go to `docs/progress_archive.md`.
 
+- 2026-11-25: one-page architecture explainer and presentation (claude.ai artifacts, not in repo). Small talk replies instead of AMBER triage (`chat_check`); 1284 tests pass. Next: user wants a reply that depends on the message for any non-medical text (LLM) and triage only once an injury/sickness is found.
 - 2026-11-19: health check: fixed an accidental uncommitted docstring typo in `fallback_service.py` that broke imports (file back to HEAD); 1218 tests pass; public /health 200 (15 s cold start); local tool folders gitignored `cb18f3d`. Next: N8.
 - 2026-11-16: public URL https://em-project-b4c3.onrender.com/ checked: /health 200, SSE stream event by event with lat/lon (source request, 1.2 s). QR code `docs/img/qr-em-project.png` (`5b77429`, not scan-tested). Final UI `053a31e`: no prototype wording, results/notices shown only when needed, trace + RT timings presenter-only (/?demo=1); screenshots EN/KO/demo in headless Chrome; 1218 tests pass.
 - 2026-11-16: deployed page sent no coordinates (source: default) even with location allowed. Fix `bb234de`: retry location on each search, wait up to 5 s, low accuracy, trace line `location: ...` with the error code. Headless Chrome: granted, denied, failed-then-retried all pass; 1218 tests pass. On the Render URL: unverified.

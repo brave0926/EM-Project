@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 from backend.app.models.domain import ERFacility, Location, LocationSource, PharmacyFacility
-from backend.app.models.enums import Category, Language, Notice, Patient, Severity
+from backend.app.models.enums import Category, ChatKind, Language, Notice, Patient, Severity
 from backend.app.models.first_aid import FirstAidCard
 from backend.app.models.llm import LlmStats
 
@@ -26,6 +26,17 @@ class TriageEvent(BaseModel):
     location: StreamLocation
     at_time: str | None  # local time for pharmacy hours; None for critical cases
     prompt_119: str | None  # the 119 line in the user's language, for RED only
+    t_ms: int = Field(ge=0)
+
+
+class ChatEvent(BaseModel):
+    """Small talk ("hi", "thanks", "who are you"): an assistant reply instead of a triage. Comes first
+    and alone, then `done`; no triage, facilities or advice follow."""
+
+    event: Literal["chat"] = "chat"
+    kind: ChatKind
+    language: Language
+    reply: str
     t_ms: int = Field(ge=0)
 
 
@@ -84,6 +95,6 @@ class DoneEvent(BaseModel):
 
 
 StreamEvent = Annotated[
-    TriageEvent | ContextEvent | ErEvent | PharmacyEvent | FirstAidEvent | NoticeEvent | AdviceEvent | DoneEvent,
+    ChatEvent | TriageEvent | ContextEvent | ErEvent | PharmacyEvent | FirstAidEvent | NoticeEvent | AdviceEvent | DoneEvent,
     Field(discriminator="event"),
 ]

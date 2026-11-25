@@ -37,6 +37,7 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
 .live{background:rgba(52,211,153,.15);color:var(--em)}.cached{background:rgba(251,191,36,.15);color:var(--am)}.unc{background:rgba(251,113,133,.15);color:var(--rd)}
 .call{display:inline-block;margin-top:6px;background:var(--bg2);border:1px solid var(--cy);color:var(--cy);padding:4px 12px;border-radius:5px;text-decoration:none;font-size:13px}
 .call.r{border-color:var(--rd);color:var(--rd)}
+#chat{font-size:15px;color:var(--tx);white-space:pre-wrap;border-color:var(--cy)}
 #adv{min-height:60px;font-size:14px;color:var(--tx);white-space:pre-wrap}
 #tl{font:12px var(--mono);color:var(--mu);white-space:pre-wrap;min-height:60px}
 .met{display:flex;gap:18px;flex-wrap:wrap;font:12px var(--mono);color:var(--cy);margin-top:8px}
@@ -85,6 +86,8 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
 
 <div id="err" role="alert"></div>
 <div id="res" hidden>
+<div class="panel" id="chat" role="status" aria-live="polite" hidden></div>
+<div id="tri">
 <div id="sev" role="status"></div>
 <div id="from"></div>
 <div class="panel sec" id="fa" aria-live="polite"><h3 id="t_fa"></h3><div id="fab"></div></div>
@@ -94,6 +97,7 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
 </div>
 <div class="panel sec" id="ntsP" hidden><h3 id="t_n"></h3><div id="nts"></div></div>
 <div class="panel sec"><h3 id="t_a"></h3><div id="adv"></div></div>
+</div>
 <div class="panel sec" id="trace" hidden><h3 id="t_tl"></h3><div id="tl"></div><div class="met" id="met"></div></div>
 </div>
 <p class="note" id="t_note"></p>
@@ -130,7 +134,7 @@ $("chips").innerHTML=t.chips.map(function(c,i){return '<button data-i="'+i+'">'+
 $("chips").onclick=function(e){if(e.target.dataset.i)$("q").value=t.chips[e.target.dataset.i]};
 if(geo)$("locst").textContent=t.locOk;
 tick();clearOut()}
-function clearOut(){$("ntsP").hidden=true;["hosp","pharm","nts","met","fab"].forEach(function(i){$(i).innerHTML=""});$("fa").style.display="none";$("adv").textContent="";$("tl").textContent="";
+function clearOut(){$("ntsP").hidden=true;$("chat").hidden=true;$("chat").textContent="";$("tri").hidden=false;["hosp","pharm","nts","met","fab"].forEach(function(i){$(i).innerHTML=""});$("fa").style.display="none";$("adv").textContent="";$("tl").textContent="";
 ["sev","from","err"].forEach(function(i){$(i).style.display="none"});$("srcTag").style.display="none"}
 $("lang").innerHTML='<select id="ls" aria-label="Language"><option value="en">English</option><option value="ru">Русский</option><option value="zh">中文</option><option value="ko">한국어</option></select>';
 $("ls").onchange=function(){setLang(this.value)};
@@ -161,6 +165,7 @@ function lg(s){log.push("+"+String(Math.round(performance.now()-t0)).padStart(5)
 function tag(list){list.forEach(function(f){sources[f.source]=1});var s=$("srcTag");s.style.display="inline-block";s.className="mock"+(sources.MOCK?"":" lv");s.textContent=sources.MOCK?t.tagMock:t.tagLive}
 $("adv").textContent=t.st;lg("location: "+(geo?"browser "+geo.lat.toFixed(3)+", "+geo.lon.toFixed(3):"none ("+(geoErr||(geoPending?"still waiting":"unknown"))+")"));lg("POST "+STREAM_URL+(b.lat!=null?" (lat/lon)":""));
 var on={
+chat:function(d){$("tri").hidden=true;var c=$("chat");c.textContent=d.reply;c.hidden=false;lg("chat: "+d.kind+" ("+d.language+"), no triage")},
 triage:function(d){var s=$("sev"),k={red:"R",amber:"A",green:"G"}[d.severity];s.className=d.severity;s.style.display="block";
 s.innerHTML=d.prompt_119?'<span class="p119">'+esc(d.prompt_119)+'</span><a class="c119" href="tel:119">'+t.c119+'</a>':esc(t[k]);
 var nm=d.location.name==="user"?t.you:d.location.name;
@@ -194,7 +199,7 @@ lg("first_aid: "+d.entry+" ("+d.kind+", "+d.steps.length+" steps"+(d.escalate?",
 advice:function(d){$("adv").textContent=d.advice;lg("advice ("+d.language+")")},
 done:function(d){lg("done: total "+d.total_ms+" ms"+(d.timed_out?" (cut off at 6 s)":""));
 var st=Object.keys(d.stages).map(function(k){return k+" "+d.stages[k]+" ms"}).join(" · ");
-$("met").innerHTML="<span>"+t.ttft+": "+(d.stages.triage!=null?d.stages.triage+" ms":"?")+" RT-101 "+(d.rt101_ok?"OK":"FAIL")+"</span><span>"+t.tot+": "+d.total_ms+" ms RT-105 "+(d.rt105_ok?"OK":"FAIL")+"</span><span>"+esc(st)+"</span>"}};
+$("met").innerHTML="<span>"+t.ttft+": "+(d.stages.triage!=null?d.stages.triage+" ms":d.stages.chat!=null?d.stages.chat+" ms":"?")+" RT-101 "+(d.rt101_ok?"OK":"FAIL")+"</span><span>"+t.tot+": "+d.total_ms+" ms RT-105 "+(d.rt105_ok?"OK":"FAIL")+"</span><span>"+esc(st)+"</span>"}};
 try{await stream(b,function(n,d){ev[n]=d;if(on[n])on[n](d)});
 if(!ev.done)throw new Error("cut")}
 catch(e){var er=$("err");er.style.display="block";er.textContent=e.status?fmt(t.eHttp,{c:e.status}):ev.triage?t.eCut:t.eNet;if(!ev.advice)$("adv").textContent="";lg("error: "+(e.status||e.message))}

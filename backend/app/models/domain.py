@@ -9,7 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from backend.app.models.enums import Category, DataStatus, Language, Notice, Patient, Severity
+from backend.app.models.enums import Category, ChatKind, DataStatus, Language, Notice, Patient, Severity
 from backend.app.models.first_aid import FirstAidCard
 # Allowed exception to one-way imports: RT-104 is a model invariant (see CLAUDE.md).
 from backend.app.services.freshness import freshness_status
@@ -68,11 +68,12 @@ class TriageOutcome(BaseModel):
     """Result of one triage run (graph output)."""
 
     language: Language
-    category: Category
-    severity: Severity
+    chat: ChatKind | None = None  # small talk: advice holds the assistant reply, no triage fields
+    category: Category | None  # None for small talk
+    severity: Severity | None  # None for small talk
     call_119: bool
-    location: Location
-    location_source: LocationSource
+    location: Location | None  # None for small talk
+    location_source: LocationSource | None
     at_time: str | None  # local time used for opening hours; None if the pharmacy step was skipped
     er: list[ERFacility]
     pharmacies: list[PharmacyFacility]

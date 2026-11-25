@@ -46,7 +46,8 @@ EXAMPLE = (
 RESPONSES: dict[int | str, dict[str, Any]] = {
     200: {
         "description": (
-            "text/event-stream. Each message is `event: <name>` + `data: <json>`. Order: `triage` first "
+            "text/event-stream. Each message is `event: <name>` + `data: <json>`. Small talk only (hi, "
+            "thanks, who are you): `chat` with the assistant reply, then `done`. Otherwise: `triage` first "
             "(rules only, RT-101 <= 1.5 s, with the 119 prompt for RED), `context` only if the LLM "
             "(EM_LLM=anthropic) filled a missing place or time, then `er`, `pharmacy` and `first_aid` "
             "(the curated first-aid card) as each worker finishes (any order; no pharmacy for RED, a minimal card), `notice` whenever a notice is known, "

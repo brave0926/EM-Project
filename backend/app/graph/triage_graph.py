@@ -1,7 +1,8 @@
 """Supervisor graph for triage (LangGraph).
 
-    START -> triage -> extract -+- red:   er_worker || first_aid_worker ---------------------+-> advise -> END
-                                +- other: er_worker || pharmacy_worker || first_aid_worker ---+
+    START -> chat_check -+- small talk ("hi", "thanks", "who are you"): reply -> END
+                         +- else: triage -> extract -+- red:   er_worker || first_aid_worker ---------------------+-> advise -> END
+                                                     +- other: er_worker || pharmacy_worker || first_aid_worker ---+
 
 triage classifies the query with rules (no network, fast first answer). extract asks the LLM
 (EM_LLM=anthropic only) for a time or known place the rules missed; rules always win and severity
@@ -32,10 +33,11 @@ from backend.app.models.domain import (
     TriageOutcome,
     TriageResult,
 )
-from backend.app.models.enums import Language, Notice, Severity
+from backend.app.models.enums import ChatKind, Language, Notice, Severity
 from backend.app.models.first_aid import FirstAidCard
 from backend.app.services import (
     advice_service,
+    chat_service,
     classifier_service,
     er_facility_service,
     first_aid_service,
@@ -61,6 +63,7 @@ class TriageState(TypedDict, total=False):
     lon: float | None
     at_time: str | None
     # filled by the nodes
+    chat: ChatKind | None  # small talk: the run ends after chat_check with `advice` = the reply
     requested_time: str | None  # time asked for (request or text); None = now
     triage: TriageResult
     location: Location
@@ -71,6 +74,19 @@ class TriageState(TypedDict, total=False):
     notices: Annotated[list[Notice], operator.add]  # parallel workers append
     first_aid: FirstAidCard | None
     advice: str
+
+
+async def chat_check(state: TriageState) -> TriageState:
+    """Whole message is small talk -> an assistant reply and no triage. Rules only, no network."""
+    kind = chat_service.detect_chat(state["query"])
+    if kind is None:
+        return {"chat": None}
+    language = state.get("language") or language_service.detect_language(state["query"])
+    return {"chat": kind, "language": language, "advice": chat_service.reply(kind, language)}
+
+
+def after_chat_check(state: TriageState) -> str:
+    return END if state.get("chat") is not None else "triage"
 
 
 async def triage_node(state: TriageState) -> TriageState:
@@ -179,13 +195,15 @@ async def advise(state: TriageState) -> TriageState:
 
 def build_graph():
     graph = StateGraph(TriageState)
+    graph.add_node("chat_check", chat_check)
     graph.add_node("triage", triage_node)
     graph.add_node("extract", extract_node)
     graph.add_node("er_worker", er_worker)
     graph.add_node("pharmacy_worker", pharmacy_worker)
     graph.add_node("first_aid_worker", first_aid_worker)
     graph.add_node("advise", advise)
-    graph.add_edge(START, "triage")
+    graph.add_edge(START, "chat_check")
+    graph.add_conditional_edges("chat_check", after_chat_check, ["triage", END])
     graph.add_edge("triage", "extract")
     graph.add_conditional_edges("extract", route, ["er_worker", "pharmacy_worker", "first_aid_worker"])
     graph.add_edge("er_worker", "advise")
@@ -226,6 +244,8 @@ async def run_triage(
     with request_timing.track() as timing:
         t0 = time.perf_counter()
         state = await _graph.ainvoke(_input(query, language, lat, lon, at_time))
+    if state.get("chat") is not None:
+        return _chat_outcome(state, t0, timing)
     triage = state["triage"]
     outcome = TriageOutcome(
         language=state["language"],
@@ -247,4 +267,14 @@ async def run_triage(
         "triage", timing, total_ms=outcome.total_ms, severity=outcome.severity, notices=outcome.notices,
         facilities=[*outcome.er, *outcome.pharmacies],
     )
+    return outcome
+
+
+def _chat_outcome(state: TriageState, t0: float, timing: request_timing.RequestTiming) -> TriageOutcome:
+    outcome = TriageOutcome(
+        language=state["language"], chat=state["chat"], category=None, severity=None, call_119=False,
+        location=None, location_source=None, at_time=None, er=[], pharmacies=[], otc=[], notices=[],
+        advice=state["advice"], total_ms=round((time.perf_counter() - t0) * 1000),
+    )
+    metrics_service.record("triage", timing, total_ms=outcome.total_ms, severity=None, notices=[], facilities=[])
     return outcome

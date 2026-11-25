@@ -30,6 +30,16 @@ class Category(StrEnum):
     OTHER = "other"
 
 
+class ChatKind(StrEnum):
+    """Small talk that gets an assistant reply instead of a triage (the whole message only)."""
+
+    GREETING = "greeting"
+    HOW_ARE_YOU = "how_are_you"
+    THANKS = "thanks"
+    ABOUT = "about"  # who are you / what can you do
+    BYE = "bye"
+
+
 class Patient(StrEnum):
     """Who is hurt, read from the text: the writer (self), someone else (other) or not said (unknown).
     Only the wording of advice and first aid changes; severity never does."""
